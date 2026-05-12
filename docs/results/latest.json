@@ -1,10 +1,911 @@
 {
-  "updatedAt": "",
-  "endDate": "",
-  "maxScanCount": 0,
+  "updatedAt": "2026-05-12T23:40:53.493117+00:00",
+  "endDate": "20260512",
+  "maxScanCount": 100,
   "successCount": 0,
-  "failedCount": 0,
-  "skippedCount": 0,
-  "estimatedWaitMinutes": 0,
-  "results": []
+  "failedCount": 100,
+  "skippedCount": 9,
+  "estimatedWaitMinutes": 50,
+  "results": [
+    {
+      "tsCode": "000001.SZ",
+      "stockName": "平安银行",
+      "industry": "银行",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000002.SZ",
+      "stockName": "万科Ａ",
+      "industry": "全国地产",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000006.SZ",
+      "stockName": "深振业Ａ",
+      "industry": "区域地产",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000007.SZ",
+      "stockName": "全新好",
+      "industry": "其他商业",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000008.SZ",
+      "stockName": "神州高铁",
+      "industry": "运输设备",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000009.SZ",
+      "stockName": "中国宝安",
+      "industry": "电气设备",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000011.SZ",
+      "stockName": "深物业A",
+      "industry": "房产服务",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000012.SZ",
+      "stockName": "南玻Ａ",
+      "industry": "玻璃",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000014.SZ",
+      "stockName": "沙河股份",
+      "industry": "全国地产",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000017.SZ",
+      "stockName": "深中华A",
+      "industry": "服饰",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000019.SZ",
+      "stockName": "深粮控股",
+      "industry": "农业综合",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000020.SZ",
+      "stockName": "深华发Ａ",
+      "industry": "元器件",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000021.SZ",
+      "stockName": "深科技",
+      "industry": "元器件",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000025.SZ",
+      "stockName": "特力Ａ",
+      "industry": "综合类",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000026.SZ",
+      "stockName": "飞亚达",
+      "industry": "服饰",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000027.SZ",
+      "stockName": "深圳能源",
+      "industry": "火力发电",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000028.SZ",
+      "stockName": "国药一致",
+      "industry": "医药商业",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000029.SZ",
+      "stockName": "深深房Ａ",
+      "industry": "区域地产",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000030.SZ",
+      "stockName": "富奥股份",
+      "industry": "汽车配件",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000031.SZ",
+      "stockName": "大悦城",
+      "industry": "全国地产",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000032.SZ",
+      "stockName": "深桑达Ａ",
+      "industry": "建筑工程",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000034.SZ",
+      "stockName": "神州数码",
+      "industry": "软件服务",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000035.SZ",
+      "stockName": "中国天楹",
+      "industry": "环境保护",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000036.SZ",
+      "stockName": "华联控股",
+      "industry": "全国地产",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000037.SZ",
+      "stockName": "深南电A",
+      "industry": "火力发电",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000039.SZ",
+      "stockName": "中集集团",
+      "industry": "运输设备",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000042.SZ",
+      "stockName": "中洲控股",
+      "industry": "全国地产",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000045.SZ",
+      "stockName": "深纺织Ａ",
+      "industry": "元器件",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000048.SZ",
+      "stockName": "京基智农",
+      "industry": "农业综合",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000049.SZ",
+      "stockName": "德赛电池",
+      "industry": "电气设备",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000050.SZ",
+      "stockName": "深天马Ａ",
+      "industry": "元器件",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000055.SZ",
+      "stockName": "方大集团",
+      "industry": "其他建材",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000058.SZ",
+      "stockName": "深赛格",
+      "industry": "商品城",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000059.SZ",
+      "stockName": "华锦股份",
+      "industry": "石油加工",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000060.SZ",
+      "stockName": "中金岭南",
+      "industry": "铅锌",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000061.SZ",
+      "stockName": "农产品",
+      "industry": "农业综合",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000062.SZ",
+      "stockName": "深圳华强",
+      "industry": "元器件",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000063.SZ",
+      "stockName": "中兴通讯",
+      "industry": "通信设备",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000065.SZ",
+      "stockName": "北方国际",
+      "industry": "建筑工程",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000066.SZ",
+      "stockName": "中国长城",
+      "industry": "IT设备",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000068.SZ",
+      "stockName": "华控赛格",
+      "industry": "环境保护",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000069.SZ",
+      "stockName": "华侨城Ａ",
+      "industry": "全国地产",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000070.SZ",
+      "stockName": "特发信息",
+      "industry": "通信设备",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000088.SZ",
+      "stockName": "盐田港",
+      "industry": "港口",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000089.SZ",
+      "stockName": "深圳机场",
+      "industry": "机场",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000090.SZ",
+      "stockName": "天健集团",
+      "industry": "建筑工程",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000096.SZ",
+      "stockName": "广聚能源",
+      "industry": "石油贸易",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000099.SZ",
+      "stockName": "中信海直",
+      "industry": "空运",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000100.SZ",
+      "stockName": "TCL科技",
+      "industry": "元器件",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000151.SZ",
+      "stockName": "中成股份",
+      "industry": "商贸代理",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000153.SZ",
+      "stockName": "丰原药业",
+      "industry": "化学制药",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000155.SZ",
+      "stockName": "川能动力",
+      "industry": "新型电力",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000156.SZ",
+      "stockName": "华数传媒",
+      "industry": "影视音像",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000157.SZ",
+      "stockName": "中联重科",
+      "industry": "工程机械",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000158.SZ",
+      "stockName": "常山北明",
+      "industry": "软件服务",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000159.SZ",
+      "stockName": "国际实业",
+      "industry": "石油贸易",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000166.SZ",
+      "stockName": "申万宏源",
+      "industry": "证券",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000301.SZ",
+      "stockName": "东方盛虹",
+      "industry": "化纤",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000333.SZ",
+      "stockName": "美的集团",
+      "industry": "家用电器",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000338.SZ",
+      "stockName": "潍柴动力",
+      "industry": "汽车配件",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000400.SZ",
+      "stockName": "许继电气",
+      "industry": "电气设备",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000401.SZ",
+      "stockName": "金隅冀东",
+      "industry": "水泥",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000402.SZ",
+      "stockName": "金融街",
+      "industry": "全国地产",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000403.SZ",
+      "stockName": "派林生物",
+      "industry": "生物制药",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000404.SZ",
+      "stockName": "长虹华意",
+      "industry": "家用电器",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000407.SZ",
+      "stockName": "胜利股份",
+      "industry": "供气供热",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000408.SZ",
+      "stockName": "藏格矿业",
+      "industry": "农药化肥",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000409.SZ",
+      "stockName": "云鼎科技",
+      "industry": "软件服务",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000410.SZ",
+      "stockName": "沈阳机床",
+      "industry": "机床制造",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000411.SZ",
+      "stockName": "英特集团",
+      "industry": "医药商业",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000415.SZ",
+      "stockName": "渤海租赁",
+      "industry": "多元金融",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000417.SZ",
+      "stockName": "合百集团",
+      "industry": "百货",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000419.SZ",
+      "stockName": "通程控股",
+      "industry": "百货",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000420.SZ",
+      "stockName": "吉林化纤",
+      "industry": "化纤",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000421.SZ",
+      "stockName": "南京公用",
+      "industry": "供气供热",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000422.SZ",
+      "stockName": "湖北宜化",
+      "industry": "农药化肥",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000423.SZ",
+      "stockName": "东阿阿胶",
+      "industry": "中成药",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000425.SZ",
+      "stockName": "徐工机械",
+      "industry": "工程机械",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000426.SZ",
+      "stockName": "兴业银锡",
+      "industry": "铅锌",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000428.SZ",
+      "stockName": "华天酒店",
+      "industry": "酒店餐饮",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000429.SZ",
+      "stockName": "粤高速Ａ",
+      "industry": "路桥",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000498.SZ",
+      "stockName": "山东路桥",
+      "industry": "建筑工程",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000501.SZ",
+      "stockName": "武商集团",
+      "industry": "百货",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000503.SZ",
+      "stockName": "国新健康",
+      "industry": "软件服务",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000505.SZ",
+      "stockName": "京粮控股",
+      "industry": "食品",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000506.SZ",
+      "stockName": "招金黄金",
+      "industry": "黄金",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000507.SZ",
+      "stockName": "珠海港",
+      "industry": "新型电力",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000509.SZ",
+      "stockName": "华塑控股",
+      "industry": "元器件",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000510.SZ",
+      "stockName": "新金路",
+      "industry": "化工原料",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000513.SZ",
+      "stockName": "丽珠集团",
+      "industry": "化学制药",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000514.SZ",
+      "stockName": "渝开发",
+      "industry": "区域地产",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000516.SZ",
+      "stockName": "国际医学",
+      "industry": "医疗保健",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000517.SZ",
+      "stockName": "荣安地产",
+      "industry": "区域地产",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000519.SZ",
+      "stockName": "中兵红箭",
+      "industry": "专用机械",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000520.SZ",
+      "stockName": "凤凰航运",
+      "industry": "水运",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000521.SZ",
+      "stockName": "长虹美菱",
+      "industry": "家用电器",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000523.SZ",
+      "stockName": "红棉股份",
+      "industry": "食品",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000524.SZ",
+      "stockName": "岭南控股",
+      "industry": "旅游服务",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000525.SZ",
+      "stockName": "红太阳",
+      "industry": "农药化肥",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    },
+    {
+      "tsCode": "000526.SZ",
+      "stockName": "学大教育",
+      "industry": "文教休闲",
+      "isScored": false,
+      "totalScore": 0.0,
+      "signalLevel": "异常/失败",
+      "errorMessage": "请指定正确的接口名"
+    }
+  ]
 }
