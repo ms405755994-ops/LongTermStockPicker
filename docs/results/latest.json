@@ -1,0 +1,10 @@
+{
+  "updatedAt": "",
+  "endDate": "",
+  "maxScanCount": 0,
+  "successCount": 0,
+  "failedCount": 0,
+  "skippedCount": 0,
+  "estimatedWaitMinutes": 0,
+  "results": []
+}

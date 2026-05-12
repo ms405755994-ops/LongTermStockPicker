@@ -1,0 +1,5 @@
+# Copy to local.properties (do not commit local.properties).
+# Get token from https://tushare.pro
+sdk.dir=/home/your-wsl-user/Android/Sdk
+TUSHARE_TOKEN=your_tushare_token_here
+CLOUD_RESULTS_URL=https://raw.githubusercontent.com/your-name/LongTermStockPicker/main/docs/results/latest.json

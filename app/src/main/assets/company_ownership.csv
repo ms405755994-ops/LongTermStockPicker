@@ -1,0 +1,4 @@
+ts_code,name,company_type,ownership_score,source,remark
+000001.SZ,平安银行,公众企业/金融机构,75,manual,示例
+600519.SH,贵州茅台,省属国资,90,manual,示例
+000333.SZ,美的集团,优质民企,75,manual,示例
