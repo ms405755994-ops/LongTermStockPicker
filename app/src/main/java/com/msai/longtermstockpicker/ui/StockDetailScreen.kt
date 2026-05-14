@@ -31,7 +31,6 @@ fun StockDetailScreen(
     viewModel: StockPickerViewModel,
     tsCode: String,
     onBack: () -> Unit,
-    onOpenLogic: () -> Unit,
 ) {
     val results by viewModel.results.collectAsState()
     val watchlistCodes by viewModel.watchlistCodes.collectAsState()
@@ -151,10 +150,6 @@ fun StockDetailScreen(
                 item.riskWarnings.forEach { w ->
                     Text("· $w", style = MaterialTheme.typography.bodySmall)
                 }
-            }
-
-            OutlinedButton(onClick = onOpenLogic) {
-                Text("查看选股逻辑")
             }
         }
     }

@@ -8,7 +8,7 @@ import sys
 import time
 import zipfile
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 MODEL_VERSION = "LongTermStockPicker PG-V1"
@@ -103,7 +103,9 @@ def has_years(first_date, latest_date, years):
         threshold = latest.replace(year=latest.year - years)
     except ValueError:
         threshold = latest.replace(year=latest.year - years, day=28)
-    return first <= threshold
+    # The exact calendar threshold can fall on a weekend/holiday. Treat the
+    # first trading day within the following week as satisfying the window.
+    return first <= threshold + timedelta(days=7)
 
 
 class PgSchema:

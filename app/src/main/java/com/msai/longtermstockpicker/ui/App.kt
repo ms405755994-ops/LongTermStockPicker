@@ -84,7 +84,6 @@ fun App(viewModel: StockPickerViewModel) {
                         viewModel = viewModel,
                         tsCode = ts,
                         onBack = { nav.popBackStack() },
-                        onOpenLogic = { nav.navigate("logic") },
                     )
                 }
             }
