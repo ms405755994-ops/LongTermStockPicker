@@ -1,19 +1,10 @@
-import java.util.Properties
-
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.kapt")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("org.jetbrains.kotlin.plugin.compose")
 }
-
-val localProperties = Properties()
-val localPropertiesFile = rootProject.file("local.properties")
-if (localPropertiesFile.exists()) {
-    localPropertiesFile.inputStream().use { localProperties.load(it) }
-}
-val tushareToken: String = localProperties.getProperty("TUSHARE_TOKEN")?.trim() ?: ""
-val cloudResultsUrl: String = localProperties.getProperty("CLOUD_RESULTS_URL")?.trim() ?: ""
 
 android {
     namespace = "com.msai.longtermstockpicker"
@@ -25,14 +16,6 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "0.1.0-test"
-        val escaped = tushareToken
-            .replace("\\", "\\\\")
-            .replace("\"", "\\\"")
-        val escapedCloudResultsUrl = cloudResultsUrl
-            .replace("\\", "\\\\")
-            .replace("\"", "\\\"")
-        buildConfigField("String", "TUSHARE_TOKEN", "\"$escaped\"")
-        buildConfigField("String", "CLOUD_RESULTS_URL", "\"$escapedCloudResultsUrl\"")
     }
 
     buildTypes {
@@ -67,6 +50,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("androidx.work:work-runtime-ktx:2.9.1")
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")

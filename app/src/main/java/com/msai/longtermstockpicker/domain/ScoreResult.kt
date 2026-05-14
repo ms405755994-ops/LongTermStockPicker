@@ -43,6 +43,8 @@ data class ScoreResult(
     val reason: String,
     val riskWarnings: List<String>,
     val errorMessage: String? = null,
+    val hasTenYearData: Boolean = true,
+    val dataWarning: String? = null,
 ) {
     val sortKey: Double
         get() = when {

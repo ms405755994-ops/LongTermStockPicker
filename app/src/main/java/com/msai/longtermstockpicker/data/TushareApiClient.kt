@@ -55,6 +55,23 @@ class TushareApiClient(
         }
     }
 
+    suspend fun postDailyByTradeDate(token: String, tradeDate: String): Result<TushareEnvelope> = withContext(Dispatchers.IO) {
+        runCatching {
+            val jsonBody = buildDailyByTradeDateRequestJson(token, tradeDate)
+            val req = Request.Builder()
+                .url("http://api.tushare.pro")
+                .post(jsonBody.toRequestBody(JSON))
+                .build()
+            client.newCall(req).execute().use { resp ->
+                val text = resp.body?.string().orEmpty()
+                if (!resp.isSuccessful) {
+                    error("HTTP ${resp.code}: $text")
+                }
+                parseTushareEnvelope(text)
+            }
+        }
+    }
+
     suspend fun postFinancial(
         token: String,
         apiName: String,

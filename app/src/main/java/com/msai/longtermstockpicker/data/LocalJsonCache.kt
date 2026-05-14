@@ -133,6 +133,19 @@ class LocalJsonCache(context: Context) {
         )
     }
 
+    fun readAllDailyCaches(): List<Pair<String, DailyCacheFile>> {
+        if (!root.exists()) return emptyList()
+        return root.listFiles()
+            ?.filter { it.isFile && it.name.endsWith(".json", ignoreCase = true) }
+            ?.mapNotNull { file ->
+                val tsCode = file.name.removeSuffix(".json")
+                runCatching {
+                    tsCode to json.decodeFromString(DailyCacheFile.serializer(), file.readText())
+                }.getOrNull()
+            }
+            .orEmpty()
+    }
+
     fun readStockBasic(): List<StockBasicInfo>? {
         if (!stockBasicFile.exists()) return null
         return runCatching {
@@ -152,6 +165,23 @@ class LocalJsonCache(context: Context) {
             json.decodeFromString(FinancialCacheFile.serializer(), f.readText()).data
         }.getOrNull()
     }
+
+    fun readAllFinancialCaches(): List<Pair<String, FinancialStatementData>> {
+        if (!financialRoot.exists()) return emptyList()
+        return financialRoot.listFiles()
+            ?.filter { it.isFile && it.name.endsWith(".json", ignoreCase = true) }
+            ?.mapNotNull { file ->
+                val tsCode = file.name.removeSuffix(".json")
+                runCatching {
+                    tsCode to json.decodeFromString(FinancialCacheFile.serializer(), file.readText()).data
+                }.getOrNull()
+            }
+            .orEmpty()
+    }
+
+    fun dailyJsonFileCount(): Int = root.listFiles()?.count { it.isFile && it.name.endsWith(".json", ignoreCase = true) } ?: 0
+
+    fun financialJsonFileCount(): Int = financialRoot.listFiles()?.count { it.isFile && it.name.endsWith(".json", ignoreCase = true) } ?: 0
 
     fun writeFinancial(tsCode: String, data: FinancialStatementData) {
         val f = financialCacheFile(tsCode)

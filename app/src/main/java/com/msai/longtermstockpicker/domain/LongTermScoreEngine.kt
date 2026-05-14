@@ -1,6 +1,8 @@
 package com.msai.longtermstockpicker.domain
 
 import com.msai.longtermstockpicker.data.StockBasicInfo
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 object LongTermScoreEngine {
 
@@ -82,6 +84,8 @@ object LongTermScoreEngine {
         val current = latest?.close
         val windowLowestClose = closes.minOrNull()
         val ownershipInfo = OwnershipScoreCalculator.infoFor(tsCode, ownership)
+        val hasTenYearData = hasAtLeastTenYears(sorted.firstOrNull()?.tradeDate, latest?.tradeDate)
+        val dataWarning = if (hasTenYearData) null else "历史数据不足10年，评分可信度下降"
 
         if (sorted.size < 500) {
             return ScoreResult(
@@ -117,6 +121,8 @@ object LongTermScoreEngine {
                 dailyMacd = null,
                 reason = "日线数据不足500条，未参与评分。",
                 riskWarnings = emptyList(),
+                hasTenYearData = hasTenYearData,
+                dataWarning = dataWarning,
             )
         }
 
@@ -156,6 +162,8 @@ object LongTermScoreEngine {
                 dailyMacd = null,
                 reason = "最低价异常（为0或非有限值），模型剔除。",
                 riskWarnings = emptyList(),
+                hasTenYearData = hasTenYearData,
+                dataWarning = dataWarning,
             )
         }
 
@@ -165,6 +173,7 @@ object LongTermScoreEngine {
         if (FinancialSafetyCalculator.avgAmountTooLowForRiskFlag(sorted)) {
             risk.add("近60日平均成交额过低（风险提示）")
         }
+        dataWarning?.let { risk.add(it) }
 
         val macdD = MacdCalculator.calculateMacd(closes)
         val macdW = MacdCalculator.calculateMacd(weekly.map { it.close })
@@ -227,6 +236,17 @@ object LongTermScoreEngine {
             dailyMacd = stD,
             reason = reason,
             riskWarnings = risk.toList(),
+            hasTenYearData = hasTenYearData,
+            dataWarning = dataWarning,
         )
+    }
+
+    private fun hasAtLeastTenYears(first: String?, latest: String?): Boolean {
+        if (first.isNullOrBlank() || latest.isNullOrBlank()) return false
+        return runCatching {
+            val firstDate = LocalDate.parse(first, DateTimeFormatter.BASIC_ISO_DATE)
+            val latestDate = LocalDate.parse(latest, DateTimeFormatter.BASIC_ISO_DATE)
+            !firstDate.isAfter(latestDate.minusYears(10).plusDays(7))
+        }.getOrDefault(false)
     }
 }

@@ -8,6 +8,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -29,8 +31,10 @@ fun StockDetailScreen(
     viewModel: StockPickerViewModel,
     tsCode: String,
     onBack: () -> Unit,
+    onOpenLogic: () -> Unit,
 ) {
     val results by viewModel.results.collectAsState()
+    val watchlistCodes by viewModel.watchlistCodes.collectAsState()
     val item = results.firstOrNull { it.tsCode == tsCode }
 
     Scaffold(
@@ -68,6 +72,16 @@ fun StockDetailScreen(
             item.errorMessage?.let { ScoreCard("错误", it) }
             item.exclusionReason?.let { ScoreCard("说明", it) }
 
+            if (item.tsCode in watchlistCodes) {
+                OutlinedButton(onClick = { viewModel.removeFromWatchlist(item.tsCode) }) {
+                    Text("移除自选")
+                }
+            } else {
+                Button(onClick = { viewModel.addToWatchlist(item) }) {
+                    Text("加入自选")
+                }
+            }
+
             ScoreCard(
                 "评分公式",
                 "总分 = 价格低位分×30% + MACD多周期分×35% + 财务安全分×25% + 企业性质分×10%",
@@ -104,6 +118,11 @@ fun StockDetailScreen(
             )
 
             ScoreCard("最新交易日", item.latestTradeDate ?: "—")
+            ScoreCard(
+                "10年数据窗口",
+                "是否满足10年数据：${if (item.hasTenYearData) "是" else "否"}\n" +
+                    "提示：${item.dataWarning.displayText()}",
+            )
             ScoreCard("当前收盘价", fmt2(item.currentClose))
             ScoreCard("10年窗口最低价", fmt2(item.windowLowestClose))
             ScoreCard("日线数据条数", item.dailyLineCount?.toString() ?: "—")
@@ -132,6 +151,10 @@ fun StockDetailScreen(
                 item.riskWarnings.forEach { w ->
                     Text("· $w", style = MaterialTheme.typography.bodySmall)
                 }
+            }
+
+            OutlinedButton(onClick = onOpenLogic) {
+                Text("查看选股逻辑")
             }
         }
     }

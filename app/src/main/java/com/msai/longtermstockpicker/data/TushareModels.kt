@@ -26,6 +26,14 @@ data class TushareDailyRequest(
 )
 
 @Serializable
+data class TushareDailyByTradeDateRequest(
+    @SerialName("api_name") val apiName: String = "daily",
+    val token: String,
+    val params: DailyTradeDateParams,
+    val fields: String,
+)
+
+@Serializable
 data class TushareStockBasicRequest(
     @SerialName("api_name") val apiName: String = "stock_basic",
     val token: String,
@@ -46,6 +54,11 @@ data class DailyParams(
     @SerialName("ts_code") val tsCode: String,
     @SerialName("start_date") val startDate: String,
     @SerialName("end_date") val endDate: String,
+)
+
+@Serializable
+data class DailyTradeDateParams(
+    @SerialName("trade_date") val tradeDate: String,
 )
 
 @Serializable
@@ -109,6 +122,15 @@ fun buildDailyRequestJson(token: String, tsCode: String, startDate: String, endD
     val req = TushareDailyRequest(
         token = token,
         params = DailyParams(tsCode = tsCode, startDate = startDate, endDate = endDate),
+        fields = "ts_code,trade_date,open,high,low,close,pre_close,change,pct_chg,vol,amount",
+    )
+    return json.encodeToString(req)
+}
+
+fun buildDailyByTradeDateRequestJson(token: String, tradeDate: String): String {
+    val req = TushareDailyByTradeDateRequest(
+        token = token,
+        params = DailyTradeDateParams(tradeDate),
         fields = "ts_code,trade_date,open,high,low,close,pre_close,change,pct_chg,vol,amount",
     )
     return json.encodeToString(req)

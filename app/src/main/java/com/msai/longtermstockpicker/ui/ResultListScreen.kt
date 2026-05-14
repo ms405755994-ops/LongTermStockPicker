@@ -15,6 +15,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -23,6 +24,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,8 +44,9 @@ fun ResultListScreen(
     onOpenDetail: (String) -> Unit,
 ) {
     val results by viewModel.results.collectAsState()
-    val summary by viewModel.scanSummary.collectAsState()
-    val retrySummary by viewModel.retryQueueSummary.collectAsState()
+    val watchlistCodes by viewModel.watchlistCodes.collectAsState()
+    var topLimit by remember { mutableStateOf(100) }
+    var query by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -60,19 +65,53 @@ fun ResultListScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            summary?.let { s ->
-                item {
-                    SummaryCard(
-                        "本次扫描数量 ${s.scanCount} ｜ 成功评分数量 ${s.successCount} ｜ " +
-                            "失败数量 ${s.failedCount} ｜ 跳过数量 ${s.skippedCount}\n" +
-                            "缓存命中数量 ${s.cacheHitCount} ｜ 网络请求数量 ${s.networkRequestCount} ｜ " +
-                            "增量更新数量 ${s.incrementalUpdateCount} ｜ 跳过已更新数量 ${s.skippedUpdatedCount}\n" +
-                            "失败队列数量 ${retrySummary.totalCount} ｜ 可重试数量 ${retrySummary.retryableCount}",
-                    )
+            item {
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    label = { Text("搜索股票代码或名称") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                )
+            }
+            item {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(50, 100, 200, 5000).forEach { limit ->
+                        TextButton(
+                            onClick = {
+                                topLimit = limit
+                                viewModel.loadLatestRanking(limit)
+                            },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(if (limit >= 5000) "全部" else "Top$limit")
+                        }
+                    }
                 }
             }
-            items(results, key = { it.tsCode }) { row ->
-                ResultRow(row, onClick = { onOpenDetail(row.tsCode) })
+            item { SummaryCard("云端结果查看模式 ｜ 本页仅展示已导入的 score_result") }
+            if (results.isEmpty()) {
+                item {
+                    SummaryCard("暂无评分结果，请先同步云端结果")
+                }
+            }
+            val filtered = results.filter {
+                val q = query.trim()
+                q.isBlank() || it.tsCode.contains(q, ignoreCase = true) || it.stockName.orEmpty().contains(q, ignoreCase = true)
+            }.take(topLimit)
+            items(filtered, key = { it.tsCode }) { row ->
+                ResultRow(
+                    item = row,
+                    isWatchlisted = row.tsCode in watchlistCodes,
+                    onClick = { onOpenDetail(row.tsCode) },
+                    onToggleWatchlist = {
+                        if (row.tsCode in watchlistCodes) {
+                            viewModel.removeFromWatchlist(row.tsCode)
+                        } else {
+                            viewModel.addToWatchlist(row)
+                        }
+                    },
+                )
             }
         }
     }
@@ -94,7 +133,12 @@ private fun SummaryCard(text: String) {
 }
 
 @Composable
-private fun ResultRow(item: ScoreResult, onClick: () -> Unit) {
+private fun ResultRow(
+    item: ScoreResult,
+    isWatchlisted: Boolean,
+    onClick: () -> Unit,
+    onToggleWatchlist: () -> Unit,
+) {
     val scoreText = when {
         item.errorMessage != null -> "失败"
         !item.isScored -> "—"
@@ -145,6 +189,11 @@ private fun ResultRow(item: ScoreResult, onClick: () -> Unit) {
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = onToggleWatchlist) {
+                    Text(if (isWatchlisted) "移除自选" else "加入自选")
+                }
+            }
             item.errorMessage?.let {
                 Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
             }
