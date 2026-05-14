@@ -11,6 +11,7 @@ build/
 *.jsonl
 *.log
 !docs/results/latest.json
+!docs/results/latest_score_top100.json
 !docs/results/.gitkeep
 __pycache__/
 *.pyc
