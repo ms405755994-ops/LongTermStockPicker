@@ -160,13 +160,32 @@ def log_failure(trade_date, reason):
         writer.writerow([trade_date, str(reason)[:500], datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
 
 
+def default_dates(conn):
+    cur = conn.cursor()
+    cur.execute("SELECT MAX(trade_date) FROM adj_factors")
+    latest = parse_date(cur.fetchone()[0])
+    start = latest + timedelta(days=1) if latest else date.today()
+    end = date.today()
+    return start, end
+
+
 def main():
     env = load_env()
     token = cfg(env, "TUSHARE_TOKEN")
     if not token:
         raise RuntimeError(".env 缺少 TUSHARE_TOKEN，无法更新 adj_factors")
-    start = parse_date(cfg(env, "START_DATE", "20160509"))
-    end = parse_date(cfg(env, "END_DATE", date.today().strftime("%Y%m%d")))
+    conn = connect_postgres(env)
+    try:
+        ensure_table(conn)
+        start_default, end_default = default_dates(conn)
+        start = parse_date(cfg(env, "START_DATE", start_default.strftime("%Y%m%d")))
+        end = parse_date(cfg(env, "END_DATE", end_default.strftime("%Y%m%d")))
+        run_update(conn, env, token, start, end)
+    finally:
+        conn.close()
+
+
+def run_update(conn, env, token, start, end):
     if not start or not end:
         raise RuntimeError("START_DATE/END_DATE 必须是 yyyyMMdd 或 yyyy-MM-dd")
     if start > end:
@@ -175,57 +194,52 @@ def main():
     force = cfg(env, "FORCE", "0") == "1"
     timeout = int(cfg(env, "TUSHARE_TIMEOUT", "180") or "180")
     retry = int(cfg(env, "TUSHARE_RETRY", "3") or "3")
-    conn = connect_postgres(env)
-    try:
-        ensure_table(conn)
-        total_days = (end - start).days + 1
-        total_rows = 0
-        updated_days = 0
-        empty_days = 0
-        skipped_days = 0
-        failed_days = 0
-        print("PostgreSQL 连接成功: True", flush=True)
-        print("复权因子更新范围:", start.strftime("%Y%m%d"), "-", end.strftime("%Y%m%d"), flush=True)
-        day = start
-        idx = 0
-        while day <= end:
-            idx += 1
-            trade_date = day.strftime("%Y%m%d")
-            if not force and existing_count(conn, trade_date) > 0:
-                skipped_days += 1
-                print(f"processing {idx}/{total_days} {trade_date} skip existing", flush=True)
-                day += timedelta(days=1)
-                continue
-            print(f"processing {idx}/{total_days} {trade_date}", flush=True)
-            try:
-                rows = post_tushare(token, trade_date, timeout=timeout, retry=retry)
-                inserted = upsert_rows(conn, rows)
-                total_rows += inserted
-                if inserted:
-                    updated_days += 1
-                else:
-                    empty_days += 1
-                print("inserted rows:", inserted, flush=True)
-            except Exception as exc:
-                conn.rollback()
-                failed_days += 1
-                log_failure(trade_date, exc)
-                print("failed:", type(exc).__name__, str(exc)[:120], flush=True)
+    total_days = (end - start).days + 1
+    total_rows = 0
+    updated_days = 0
+    empty_days = 0
+    skipped_days = 0
+    failed_days = 0
+    print("PostgreSQL 连接成功: True", flush=True)
+    print("复权因子更新范围:", start.strftime("%Y%m%d"), "-", end.strftime("%Y%m%d"), flush=True)
+    day = start
+    idx = 0
+    while day <= end:
+        idx += 1
+        trade_date = day.strftime("%Y%m%d")
+        if not force and existing_count(conn, trade_date) > 0:
+            skipped_days += 1
+            print(f"processing {idx}/{total_days} {trade_date} skip existing", flush=True)
             day += timedelta(days=1)
-        cur = conn.cursor()
-        cur.execute("SELECT MIN(trade_date), MAX(trade_date), COUNT(*) FROM adj_factors")
-        first, latest, count = cur.fetchone()
-        print("done", flush=True)
-        print("updated trading days:", updated_days, flush=True)
-        print("empty days:", empty_days, flush=True)
-        print("skipped days:", skipped_days, flush=True)
-        print("failed days:", failed_days, flush=True)
-        print("inserted total:", total_rows, flush=True)
-        if failed_days:
-            print("失败日志:", FAILED_FILE, flush=True)
-        print("adj_factors range/count:", compact(first), compact(latest), count, flush=True)
-    finally:
-        conn.close()
+            continue
+        print(f"processing {idx}/{total_days} {trade_date}", flush=True)
+        try:
+            rows = post_tushare(token, trade_date, timeout=timeout, retry=retry)
+            inserted = upsert_rows(conn, rows)
+            total_rows += inserted
+            if inserted:
+                updated_days += 1
+            else:
+                empty_days += 1
+            print("inserted rows:", inserted, flush=True)
+        except Exception as exc:
+            conn.rollback()
+            failed_days += 1
+            log_failure(trade_date, exc)
+            print("failed:", type(exc).__name__, str(exc)[:120], flush=True)
+        day += timedelta(days=1)
+    cur = conn.cursor()
+    cur.execute("SELECT MIN(trade_date), MAX(trade_date), COUNT(*) FROM adj_factors")
+    first, latest, count = cur.fetchone()
+    print("done", flush=True)
+    print("updated trading days:", updated_days, flush=True)
+    print("empty days:", empty_days, flush=True)
+    print("skipped days:", skipped_days, flush=True)
+    print("failed days:", failed_days, flush=True)
+    print("inserted total:", total_rows, flush=True)
+    if failed_days:
+        print("失败日志:", FAILED_FILE, flush=True)
+    print("adj_factors range/count:", compact(first), compact(latest), count, flush=True)
 
 
 if __name__ == "__main__":
