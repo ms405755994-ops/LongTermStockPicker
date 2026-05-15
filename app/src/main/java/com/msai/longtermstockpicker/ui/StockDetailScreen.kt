@@ -123,7 +123,7 @@ fun StockDetailScreen(
                     "提示：${item.dataWarning.displayText()}",
             )
             ScoreCard("当前收盘价", fmt2(item.currentClose))
-            ScoreCard("10年窗口最低价", fmt2(item.windowLowestClose))
+            ScoreCard("10年窗口最低价（前复权）", fmt2(item.windowLowestClose))
             ScoreCard("日线数据条数", item.dailyLineCount?.toString() ?: "—")
             ScoreCard("周线数据条数", item.weeklyLineCount?.toString() ?: "—")
             ScoreCard("月线数据条数", item.monthlyLineCount?.toString() ?: "—")

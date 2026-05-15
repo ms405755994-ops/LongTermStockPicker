@@ -53,6 +53,7 @@ EOF
 }
 
 python3 scripts/update_pg_daily_incremental.py
+python3 scripts/update_pg_adj_factor_incremental.py
 MAX_SCAN_COUNT="${MAX_SCAN_COUNT:-5000}" python3 scripts/pg_score_and_export.py
 MAX_FINANCIAL_COUNT="${MAX_FINANCIAL_COUNT:-100}" python3 scripts/backfill_pg_financial_snapshot.py
 MAX_SCAN_COUNT="${MAX_SCAN_COUNT:-5000}" python3 scripts/pg_score_and_export.py

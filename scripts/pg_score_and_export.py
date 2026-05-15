@@ -314,7 +314,49 @@ def load_dailies(conn, schema, ts_code, start_date, end_date):
                 "vol": fnum(data.get(vol_col)) if vol_col else None,
             }
         )
-    return rows
+    return apply_qfq_adjustment(conn, schema, ts_code, rows, end_date)
+
+
+def apply_qfq_adjustment(conn, schema, ts_code, rows, end_date):
+    if not rows or not schema.has_table("adj_factors"):
+        return rows
+    cur = conn.cursor()
+    cur.execute(
+        """
+        SELECT trade_date, adj_factor
+        FROM adj_factors
+        WHERE ts_code = %s
+          AND trade_date <= %s
+        ORDER BY trade_date
+        """,
+        (ts_code, parse_yyyymmdd(end_date) or end_date),
+    )
+    factors = [(compact_date(d), fnum(v)) for d, v in cur.fetchall() if fnum(v) is not None and fnum(v) > 0]
+    if not factors:
+        return rows
+    latest_factor = factors[-1][1]
+    factor_by_date = {d: v for d, v in factors}
+    factor_dates = [d for d, _ in factors]
+    factor_values = [v for _, v in factors]
+    idx = 0
+    current_factor = None
+    adjusted = []
+    for row in rows:
+        trade_date = row["trade_date"]
+        while idx < len(factor_dates) and factor_dates[idx] <= trade_date:
+            current_factor = factor_values[idx]
+            idx += 1
+        factor = factor_by_date.get(trade_date) or current_factor
+        if not factor or not latest_factor:
+            adjusted.append(row)
+            continue
+        ratio = factor / latest_factor
+        adjusted_row = dict(row)
+        for key in ["open", "high", "low", "close"]:
+            if adjusted_row.get(key) is not None:
+                adjusted_row[key] = adjusted_row[key] * ratio
+        adjusted.append(adjusted_row)
+    return adjusted
 
 
 def load_ownership():
@@ -460,11 +502,12 @@ def resample_weekly_last_close(dailies):
     return [v for _, v in sorted(buckets.items())]
 
 
-def price_position_score(closes, current_close):
+def price_position_score(closes, current_close, lows=None):
     sorted_closes = sorted(closes)
     count_le = sum(1 for v in sorted_closes if v <= current_close)
     percentile = count_le / len(sorted_closes)
-    low = min(sorted_closes)
+    low_candidates = [v for v in (lows or []) if v is not None and v > 0]
+    low = min(low_candidates) if low_candidates else min(sorted_closes)
     distance = current_close / low - 1 if low > 0 else None
     if percentile <= 0.10:
         score = 100.0
@@ -539,7 +582,8 @@ def score_stock(conn, schema, basic, ownership, start_date, end_date):
     if len(closes) < 500:
         return None, "日线少于500条"
     current_close = closes[-1]
-    price_score, percentile, distance, low = price_position_score(closes, current_close)
+    lows = [row["low"] for row in dailies if row.get("low") is not None]
+    price_score, percentile, distance, low = price_position_score(closes, current_close, lows)
     weekly = resample_weekly_last_close(dailies)
     monthly = resample_last_close(dailies, 6)
     daily_status = macd_status(closes)
