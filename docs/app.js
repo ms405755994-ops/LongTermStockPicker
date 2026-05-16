@@ -358,7 +358,7 @@ function drawKlineChart(canvas, points, label) {
     const h = Math.max(1, Math.abs(scale(open) - scale(close)));
     ctx.fillRect(x - bodyW / 2, y, bodyW, h);
   });
-  drawPriceAnnotations(ctx, points, pad, areaW, scale, step, bodyW);
+  drawPriceAnnotations(ctx, points, pad, areaW, areaH, scale, step, bodyW);
   drawXAxis(ctx, points, pad, width, height);
 }
 
@@ -414,13 +414,13 @@ function drawMacdChart(canvas, points, label) {
   drawXAxis(ctx, points, pad, width, height);
 }
 
-function drawPriceAnnotations(ctx, points, pad, areaW, scale, step, bodyW) {
+function drawPriceAnnotations(ctx, points, pad, areaW, areaH, scale, step, bodyW) {
   let lowIndex = 0;
   points.forEach((p, i) => {
     if (Number(p.low) < Number(points[lowIndex].low)) lowIndex = i;
   });
   const latestIndex = points.length - 1;
-  drawCallout(
+  const lowCallout = makeCalloutBox(
     ctx,
     pad.left + lowIndex * step + step / 2,
     scale(Number(points[lowIndex].low)),
@@ -428,8 +428,10 @@ function drawPriceAnnotations(ctx, points, pad, areaW, scale, step, bodyW) {
     "#0f6b63",
     pad,
     areaW,
+    areaH,
+    "below",
   );
-  drawCallout(
+  const latestCallout = makeCalloutBox(
     ctx,
     pad.left + latestIndex * step + step / 2,
     scale(Number(points[latestIndex].close)),
@@ -437,28 +439,66 @@ function drawPriceAnnotations(ctx, points, pad, areaW, scale, step, bodyW) {
     "#b45f06",
     pad,
     areaW,
-    latestIndex === lowIndex ? 18 : 0,
+    areaH,
+    "above",
   );
+  avoidCalloutOverlap(lowCallout, latestCallout, pad, areaH);
+  drawCalloutBox(ctx, lowCallout);
+  drawCalloutBox(ctx, latestCallout);
 }
 
-function drawCallout(ctx, x, y, label, color, pad, areaW, yOffset = 0) {
+function makeCalloutBox(ctx, x, y, label, color, pad, areaW, areaH, placement) {
   const textWidth = ctx.measureText(label).width;
   const boxW = textWidth + 12;
   const boxH = 22;
   const minX = pad.left;
   const maxX = pad.left + areaW - boxW;
+  const minY = pad.top;
+  const maxY = pad.top + areaH - boxH;
   const boxX = Math.max(minX, Math.min(maxX, x - boxW / 2));
-  const boxY = Math.max(28, y - boxH - 8 - yOffset);
-  ctx.strokeStyle = color;
-  ctx.fillStyle = color;
+  const rawY = placement === "below" ? y + 8 : y - boxH - 8;
+  const boxY = Math.max(minY, Math.min(maxY, rawY));
+  return { x, y, label, color, boxX, boxY, boxW, boxH, placement };
+}
+
+function avoidCalloutOverlap(a, b, pad, areaH) {
+  if (!boxesOverlap(a, b)) return;
+  const gap = 6;
+  const minY = pad.top;
+  const maxY = pad.top + areaH - Math.max(a.boxH, b.boxH);
+  if (a.y >= b.y) {
+    a.boxY = b.boxY + b.boxH + gap;
+  } else {
+    b.boxY = a.boxY + a.boxH + gap;
+  }
+  a.boxY = Math.max(minY, Math.min(maxY, a.boxY));
+  b.boxY = Math.max(minY, Math.min(maxY, b.boxY));
+  if (boxesOverlap(a, b)) {
+    a.boxY = Math.max(minY, b.boxY - a.boxH - gap);
+  }
+}
+
+function boxesOverlap(a, b) {
+  return !(
+    a.boxX + a.boxW < b.boxX ||
+    b.boxX + b.boxW < a.boxX ||
+    a.boxY + a.boxH < b.boxY ||
+    b.boxY + b.boxH < a.boxY
+  );
+}
+
+function drawCalloutBox(ctx, box) {
+  ctx.strokeStyle = box.color;
+  ctx.fillStyle = box.color;
   ctx.beginPath();
-  ctx.moveTo(x, y);
-  ctx.lineTo(Math.max(boxX, Math.min(boxX + boxW, x)), boxY + boxH);
+  ctx.moveTo(box.x, box.y);
+  const targetY = box.placement === "below" ? box.boxY : box.boxY + box.boxH;
+  ctx.lineTo(Math.max(box.boxX, Math.min(box.boxX + box.boxW, box.x)), targetY);
   ctx.stroke();
-  ctx.fillRect(boxX, boxY, boxW, boxH);
+  ctx.fillRect(box.boxX, box.boxY, box.boxW, box.boxH);
   ctx.fillStyle = "#ffffff";
   ctx.font = "12px system-ui, sans-serif";
-  ctx.fillText(label, boxX + 6, boxY + 15);
+  ctx.fillText(box.label, box.boxX + 6, box.boxY + 15);
 }
 
 function drawLine(ctx, values, pad, step, y, color) {
