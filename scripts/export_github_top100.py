@@ -43,7 +43,7 @@ def build_strategy_logic(payload):
                 "body": "以下股票优先过滤或降低优先级：\n"
                 "- ST / *ST 股票\n"
                 "- 上市不足 5 年\n"
-                "- 日线数据严重不足\n"
+                "- 日线历史数据低于 4 年，不进入榜单\n"
                 "- 历史数据不足 10 年时显示风险提示\n"
                 "- MACD 未出现底部修复迹象时不进入 Top100 候选\n"
                 "- 财务数据严重缺失时降低可信度",
@@ -131,6 +131,7 @@ def build_strategy_logic(payload):
                 "云端会：\n"
                 "- 增量更新前复权行情和财务数据\n"
                 "- 全市场评分\n"
+                "- 剔除日线历史数据低于 4 年的股票\n"
                 "- 只输出总分排名前 100 只\n"
                 "- 上传 latest_score_top100.json 和 strategy_logic.json 到 GitHub\n\n"
                 "手机端点击“同步 GitHub Top100”后，会同时读取最新结果和最新选股逻辑。",

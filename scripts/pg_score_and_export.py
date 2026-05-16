@@ -594,8 +594,8 @@ def score_stock(conn, schema, basic, ownership, start_date, end_date):
         return None, "无日线数据"
     first_date = dailies[0]["trade_date"]
     latest_date = dailies[-1]["trade_date"]
-    if not has_years(first_date, latest_date, 5):
-        return None, "历史数据不足5年"
+    if not has_years(first_date, latest_date, 4):
+        return None, "历史数据不足4年"
     closes = [row["close"] for row in dailies if row["close"] is not None]
     if len(closes) < 500:
         return None, "日线少于500条"
