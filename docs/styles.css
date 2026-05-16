@@ -351,11 +351,20 @@ tbody tr:hover {
 
 .chart-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin: 8px 0 10px;
 }
 
-.chart-tab {
+.chart-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.chart-tab,
+.chart-tool {
   min-height: 36px;
   padding: 0 18px;
   border: 1px solid var(--line);
@@ -365,7 +374,14 @@ tbody tr:hover {
   cursor: pointer;
 }
 
-.chart-tab.active {
+.chart-tool {
+  padding: 0 12px;
+  min-height: 32px;
+  font-size: 14px;
+}
+
+.chart-tab.active,
+.chart-tool.active {
   background: var(--primary);
   border-color: var(--primary);
   color: #fff;

@@ -14,6 +14,7 @@ const state = {
   query: "",
   chart: null,
   chartPeriod: "monthly",
+  chartVisibleCounts: {},
 };
 
 const el = (id) => document.getElementById(id);
@@ -198,6 +199,15 @@ async function openDetail(code) {
         <button class="chart-tab" data-period="weekly" type="button">周线</button>
         <button class="chart-tab" data-period="daily" type="button">日线</button>
       </div>
+      <div class="chart-tools" aria-label="图表缩放">
+        <button class="chart-tool" data-range="all" type="button">全景</button>
+        <button class="chart-tool" data-range="5y" type="button">5年</button>
+        <button class="chart-tool" data-range="3y" type="button">3年</button>
+        <button class="chart-tool" data-range="1y" type="button">1年</button>
+        <button class="chart-tool" data-zoom="in" type="button">放大</button>
+        <button class="chart-tool" data-zoom="out" type="button">缩小</button>
+        <button class="chart-tool" data-range="reset" type="button">重置</button>
+      </div>
       <canvas id="klineCanvas" class="stock-chart" data-chart-height="260" height="260"></canvas>
       <canvas id="volumeCanvas" class="stock-chart small" data-chart-height="120" height="120"></canvas>
       <canvas id="macdCanvas" class="stock-chart small" data-chart-height="150" height="150"></canvas>
@@ -233,7 +243,9 @@ async function openDetail(code) {
   el("detailDialog").showModal();
   state.chart = null;
   state.chartPeriod = "monthly";
+  state.chartVisibleCounts = {};
   bindChartTabs();
+  bindChartTools();
   await loadAndRenderChart(code);
 }
 
@@ -263,7 +275,26 @@ function bindChartTabs() {
     btn.addEventListener("click", () => {
       state.chartPeriod = btn.dataset.period;
       document.querySelectorAll(".chart-tab").forEach((item) => item.classList.toggle("active", item === btn));
+      updateChartToolState();
       renderChartPeriod(state.chartPeriod);
+    });
+  });
+}
+
+function bindChartTools() {
+  document.querySelectorAll(".chart-tool").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (!state.chart) return;
+      const period = state.chartPeriod;
+      const points = state.chart.periods?.[period]?.points || [];
+      if (!points.length) return;
+      if (btn.dataset.range) {
+        setChartRange(period, btn.dataset.range, points.length);
+      } else if (btn.dataset.zoom) {
+        zoomChart(period, btn.dataset.zoom, points.length);
+      }
+      updateChartToolState();
+      renderChartPeriod(period);
     });
   });
 }
@@ -278,10 +309,61 @@ function renderChartPeriod(period) {
     clearCharts();
     return;
   }
-  status.textContent = `前复权${periodLabel(period)}，${points.length} 根`;
-  drawKlineChart(el("klineCanvas"), points, periodLabel(period));
-  drawVolumeChart(el("volumeCanvas"), points, periodLabel(period));
-  drawMacdChart(el("macdCanvas"), points, periodLabel(period));
+  const visible = visibleChartPoints(period, points);
+  status.textContent = `前复权${periodLabel(period)}，显示 ${visible.length} / ${points.length} 根`;
+  drawKlineChart(el("klineCanvas"), visible, periodLabel(period));
+  drawVolumeChart(el("volumeCanvas"), visible, periodLabel(period));
+  drawMacdChart(el("macdCanvas"), visible, periodLabel(period));
+}
+
+function visibleChartPoints(period, points) {
+  const count = state.chartVisibleCounts[period];
+  if (!count || count >= points.length) return points;
+  return points.slice(Math.max(0, points.length - count));
+}
+
+function setChartRange(period, range, total) {
+  if (range === "all" || range === "reset") {
+    delete state.chartVisibleCounts[period];
+    return;
+  }
+  const years = Number(range.replace("y", ""));
+  const count = Math.min(total, Math.max(minVisibleCount(period), Math.round(years * barsPerYear(period))));
+  state.chartVisibleCounts[period] = count;
+}
+
+function zoomChart(period, direction, total) {
+  const current = state.chartVisibleCounts[period] || total;
+  const minCount = minVisibleCount(period);
+  const next = direction === "in"
+    ? Math.max(minCount, Math.round(current * 0.68))
+    : Math.min(total, Math.round(current / 0.68));
+  if (next >= total) delete state.chartVisibleCounts[period];
+  else state.chartVisibleCounts[period] = next;
+}
+
+function barsPerYear(period) {
+  return { monthly: 12, weekly: 52, daily: 244 }[period] || 12;
+}
+
+function minVisibleCount(period) {
+  return { monthly: 12, weekly: 40, daily: 80 }[period] || 12;
+}
+
+function updateChartToolState() {
+  const period = state.chartPeriod;
+  const total = state.chart?.periods?.[period]?.points?.length || 0;
+  const count = state.chartVisibleCounts[period] || total;
+  document.querySelectorAll(".chart-tool").forEach((btn) => {
+    const range = btn.dataset.range;
+    const active = (range === "all" || range === "reset") ? count >= total : range && presetCount(period, range, total) === count;
+    btn.classList.toggle("active", Boolean(active));
+  });
+}
+
+function presetCount(period, range, total) {
+  if (!range || range === "all" || range === "reset") return total;
+  return Math.min(total, Math.max(minVisibleCount(period), Math.round(Number(range.replace("y", "")) * barsPerYear(period))));
 }
 
 function clearCharts() {
