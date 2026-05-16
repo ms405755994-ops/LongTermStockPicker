@@ -12,6 +12,8 @@ const state = {
   watchlist: new Set(),
   limit: 100,
   query: "",
+  chart: null,
+  chartPeriod: "monthly",
 };
 
 const el = (id) => document.getElementById(id);
@@ -182,8 +184,13 @@ async function openDetail(code) {
   el("detailBody").innerHTML = `
     <section class="chart-panel">
       <div class="chart-head">
-        <h3>10年月线图</h3>
+        <h3>10年K线图</h3>
         <span id="chartStatus" class="muted">正在加载前复权月线图表...</span>
+      </div>
+      <div class="chart-tabs" aria-label="图表周期">
+        <button class="chart-tab active" data-period="monthly" type="button">月线</button>
+        <button class="chart-tab" data-period="weekly" type="button">周线</button>
+        <button class="chart-tab" data-period="daily" type="button">日线</button>
       </div>
       <canvas id="klineCanvas" class="stock-chart" height="260"></canvas>
       <canvas id="volumeCanvas" class="stock-chart small" height="120"></canvas>
@@ -218,6 +225,9 @@ async function openDetail(code) {
     </section>
   `;
   el("detailDialog").showModal();
+  state.chart = null;
+  state.chartPeriod = "monthly";
+  bindChartTabs();
   await loadAndRenderChart(code);
 }
 
@@ -225,14 +235,60 @@ async function loadAndRenderChart(code) {
   const status = el("chartStatus");
   try {
     const chart = await fetchJson(`${CHART_BASE_URL}${code}.json?t=${Date.now()}`);
-    if (!Array.isArray(chart.points) || chart.points.length === 0) throw new Error("图表数据为空");
-    status.textContent = `前复权月线，${chart.points.length} 个月`;
-    drawKlineChart(el("klineCanvas"), chart.points);
-    drawVolumeChart(el("volumeCanvas"), chart.points);
-    drawMacdChart(el("macdCanvas"), chart.points);
+    state.chart = normalizeChart(chart);
+    renderChartPeriod(state.chartPeriod);
   } catch (error) {
     status.textContent = `图表加载失败：${error.message || error}`;
   }
+}
+
+function normalizeChart(chart) {
+  if (chart.periods) return chart;
+  return {
+    ...chart,
+    periods: {
+      monthly: { label: "月线", points: chart.points || [] },
+    },
+  };
+}
+
+function bindChartTabs() {
+  document.querySelectorAll(".chart-tab").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.chartPeriod = btn.dataset.period;
+      document.querySelectorAll(".chart-tab").forEach((item) => item.classList.toggle("active", item === btn));
+      renderChartPeriod(state.chartPeriod);
+    });
+  });
+}
+
+function renderChartPeriod(period) {
+  const chart = state.chart;
+  const status = el("chartStatus");
+  const data = chart?.periods?.[period];
+  const points = data?.points || [];
+  if (!points.length) {
+    status.textContent = `${periodLabel(period)}图表数据为空`;
+    clearCharts();
+    return;
+  }
+  status.textContent = `前复权${periodLabel(period)}，${points.length} 根`;
+  drawKlineChart(el("klineCanvas"), points, periodLabel(period));
+  drawVolumeChart(el("volumeCanvas"), points, periodLabel(period));
+  drawMacdChart(el("macdCanvas"), points, periodLabel(period));
+}
+
+function clearCharts() {
+  ["klineCanvas", "volumeCanvas", "macdCanvas"].forEach((id) => {
+    const canvas = el(id);
+    if (!canvas) return;
+    const { ctx, width, height } = setupCanvas(canvas);
+    drawFrame(ctx, width, height, "暂无数据");
+  });
+}
+
+function periodLabel(period) {
+  return { monthly: "月线", weekly: "周线", daily: "日线" }[period] || "月线";
 }
 
 function metric(label, value) {
@@ -264,9 +320,9 @@ function drawFrame(ctx, width, height, title) {
   ctx.fillText(title, 12, 20);
 }
 
-function drawKlineChart(canvas, points) {
+function drawKlineChart(canvas, points, label) {
   const { ctx, width, height } = setupCanvas(canvas);
-  drawFrame(ctx, width, height, "10年月K线（前复权）");
+  drawFrame(ctx, width, height, `10年${label}K线（前复权）`);
   const pad = { left: 44, right: 14, top: 34, bottom: 24 };
   const areaW = width - pad.left - pad.right;
   const areaH = height - pad.top - pad.bottom;
@@ -295,12 +351,13 @@ function drawKlineChart(canvas, points) {
     const h = Math.max(1, Math.abs(scale(open) - scale(close)));
     ctx.fillRect(x - bodyW / 2, y, bodyW, h);
   });
+  drawPriceAnnotations(ctx, points, pad, areaW, scale, step, bodyW);
   drawXAxis(ctx, points, pad, width, height);
 }
 
-function drawVolumeChart(canvas, points) {
+function drawVolumeChart(canvas, points, label) {
   const { ctx, width, height } = setupCanvas(canvas);
-  drawFrame(ctx, width, height, "月成交量红绿柱");
+  drawFrame(ctx, width, height, `${label}成交量红绿柱`);
   const pad = { left: 44, right: 14, top: 30, bottom: 24 };
   const areaW = width - pad.left - pad.right;
   const areaH = height - pad.top - pad.bottom;
@@ -318,9 +375,9 @@ function drawVolumeChart(canvas, points) {
   drawXAxis(ctx, points, pad, width, height);
 }
 
-function drawMacdChart(canvas, points) {
+function drawMacdChart(canvas, points, label) {
   const { ctx, width, height } = setupCanvas(canvas);
-  drawFrame(ctx, width, height, "月线MACD红绿柱");
+  drawFrame(ctx, width, height, `${label}MACD红绿柱`);
   const pad = { left: 44, right: 14, top: 30, bottom: 24 };
   const areaW = width - pad.left - pad.right;
   const areaH = height - pad.top - pad.bottom;
@@ -348,6 +405,53 @@ function drawMacdChart(canvas, points) {
   ctx.fillStyle = "#b45f06";
   ctx.fillText("DEA", width - 40, 20);
   drawXAxis(ctx, points, pad, width, height);
+}
+
+function drawPriceAnnotations(ctx, points, pad, areaW, scale, step, bodyW) {
+  let lowIndex = 0;
+  points.forEach((p, i) => {
+    if (Number(p.low) < Number(points[lowIndex].low)) lowIndex = i;
+  });
+  const latestIndex = points.length - 1;
+  drawCallout(
+    ctx,
+    pad.left + lowIndex * step + step / 2,
+    scale(Number(points[lowIndex].low)),
+    `最低 ${fmt(points[lowIndex].low, 2)}`,
+    "#0f6b63",
+    pad,
+    areaW,
+  );
+  drawCallout(
+    ctx,
+    pad.left + latestIndex * step + step / 2,
+    scale(Number(points[latestIndex].close)),
+    `最新 ${fmt(points[latestIndex].close, 2)}`,
+    "#b45f06",
+    pad,
+    areaW,
+    latestIndex === lowIndex ? 18 : 0,
+  );
+}
+
+function drawCallout(ctx, x, y, label, color, pad, areaW, yOffset = 0) {
+  const textWidth = ctx.measureText(label).width;
+  const boxW = textWidth + 12;
+  const boxH = 22;
+  const minX = pad.left;
+  const maxX = pad.left + areaW - boxW;
+  const boxX = Math.max(minX, Math.min(maxX, x - boxW / 2));
+  const boxY = Math.max(28, y - boxH - 8 - yOffset);
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(Math.max(boxX, Math.min(boxX + boxW, x)), boxY + boxH);
+  ctx.stroke();
+  ctx.fillRect(boxX, boxY, boxW, boxH);
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "12px system-ui, sans-serif";
+  ctx.fillText(label, boxX + 6, boxY + 15);
 }
 
 function drawLine(ctx, values, pad, step, y, color) {

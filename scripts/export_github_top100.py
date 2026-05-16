@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 
 from pg_score_and_export import (
@@ -172,12 +173,21 @@ def month_key(trade_date):
     return str(trade_date or "")[:6]
 
 
-def build_monthly_bars(dailies):
+def week_key(trade_date):
+    try:
+        d = datetime.strptime(str(trade_date), "%Y%m%d").date()
+    except ValueError:
+        return str(trade_date or "")[:6]
+    year, week, _ = d.isocalendar()
+    return f"{year}{week:02d}"
+
+
+def build_period_bars(dailies, key_func):
     buckets = []
     current_key = None
     current = None
     for row in dailies:
-        key = month_key(row.get("trade_date"))
+        key = key_func(row.get("trade_date"))
         if not key:
             continue
         if key != current_key:
@@ -203,7 +213,22 @@ def build_monthly_bars(dailies):
     return [row for row in buckets if row.get("open") is not None and row.get("high") is not None and row.get("low") is not None and row.get("close") is not None]
 
 
-def monthly_macd(closes):
+def build_daily_bars(dailies):
+    return [
+        {
+            "date": row.get("trade_date"),
+            "open": row.get("open"),
+            "high": row.get("high"),
+            "low": row.get("low"),
+            "close": row.get("close"),
+            "volume": row.get("vol") or 0.0,
+        }
+        for row in dailies
+        if row.get("open") is not None and row.get("high") is not None and row.get("low") is not None and row.get("close") is not None
+    ]
+
+
+def build_macd(closes):
     if not closes:
         return []
     ema12 = ema(closes, 12)
@@ -226,6 +251,26 @@ def rounded(value, digits=4):
     return round(float(value), digits)
 
 
+def build_chart_points(bars):
+    macd = build_macd([item["close"] for item in bars])
+    points = []
+    for item, macd_item in zip(bars, macd):
+        points.append(
+            {
+                "date": item["date"],
+                "open": rounded(item["open"]),
+                "high": rounded(item["high"]),
+                "low": rounded(item["low"]),
+                "close": rounded(item["close"]),
+                "volume": rounded(item.get("volume"), 2),
+                "dif": macd_item["dif"],
+                "dea": macd_item["dea"],
+                "macd": macd_item["bar"],
+            }
+        )
+    return points
+
+
 def write_chart_files(results):
     CHART_DIR.mkdir(parents=True, exist_ok=True)
     for old in CHART_DIR.glob("*.json"):
@@ -244,30 +289,19 @@ def write_chart_files(results):
             if not ts_code or not trade_date or not start_date:
                 continue
             dailies = load_dailies(conn, schema, ts_code, start_date, trade_date)
-            monthly = build_monthly_bars(dailies)
-            macd = monthly_macd([item["close"] for item in monthly])
-            points = []
-            for item, macd_item in zip(monthly, macd):
-                points.append(
-                    {
-                        "date": item["date"],
-                        "open": rounded(item["open"]),
-                        "high": rounded(item["high"]),
-                        "low": rounded(item["low"]),
-                        "close": rounded(item["close"]),
-                        "volume": rounded(item.get("volume"), 2),
-                        "dif": macd_item["dif"],
-                        "dea": macd_item["dea"],
-                        "macd": macd_item["bar"],
-                    }
-                )
+            monthly = build_period_bars(dailies, month_key)
+            weekly = build_period_bars(dailies, week_key)
+            daily = build_daily_bars(dailies)
             payload = {
                 "ts_code": ts_code,
                 "name": row.get("name") or "",
                 "trade_date": trade_date,
                 "price_type": "qfq",
-                "period": "monthly",
-                "points": points,
+                "periods": {
+                    "monthly": {"label": "月线", "points": build_chart_points(monthly)},
+                    "weekly": {"label": "周线", "points": build_chart_points(weekly)},
+                    "daily": {"label": "日线", "points": build_chart_points(daily)},
+                },
             }
             (CHART_DIR / f"{ts_code}.json").write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
             written += 1
