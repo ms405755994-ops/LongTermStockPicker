@@ -602,6 +602,8 @@ def score_stock(conn, schema, basic, ownership, start_date, end_date):
     current_close = closes[-1]
     lows = [row["low"] for row in dailies if row.get("low") is not None]
     price_score, percentile, distance, low = price_position_score(closes, current_close, lows)
+    if distance is not None and distance > 1.00:
+        return None, f"距离10年最低价超过100%（当前高于最低价{distance * 100:.2f}%）"
     weekly = resample_weekly_last_close(dailies)
     monthly = resample_last_close(dailies, 6)
     daily_status = macd_status(closes)
