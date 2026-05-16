@@ -198,9 +198,9 @@ async function openDetail(code) {
         <button class="chart-tab" data-period="weekly" type="button">周线</button>
         <button class="chart-tab" data-period="daily" type="button">日线</button>
       </div>
-      <canvas id="klineCanvas" class="stock-chart" height="260"></canvas>
-      <canvas id="volumeCanvas" class="stock-chart small" height="120"></canvas>
-      <canvas id="macdCanvas" class="stock-chart small" height="150"></canvas>
+      <canvas id="klineCanvas" class="stock-chart" data-chart-height="260" height="260"></canvas>
+      <canvas id="volumeCanvas" class="stock-chart small" data-chart-height="120" height="120"></canvas>
+      <canvas id="macdCanvas" class="stock-chart small" data-chart-height="150" height="150"></canvas>
     </section>
     <div class="detail-grid">
       ${metric("行业", row.industry)}
@@ -305,9 +305,10 @@ function setupCanvas(canvas) {
   const rect = canvas.getBoundingClientRect();
   const ratio = window.devicePixelRatio || 1;
   const width = Math.max(320, Math.floor(rect.width || canvas.parentElement.clientWidth));
-  const height = Number(canvas.getAttribute("height")) || 220;
+  const height = Number(canvas.dataset.chartHeight || 220);
   canvas.width = Math.floor(width * ratio);
   canvas.height = Math.floor(height * ratio);
+  canvas.style.width = "100%";
   canvas.style.height = `${height}px`;
   const ctx = canvas.getContext("2d");
   ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
