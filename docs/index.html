@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>中长线选股结果查看器</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">云端计算 / 网页查看</p>
+      <h1>中长线选股结果查看器</h1>
+    </div>
+    <button id="syncBtn" class="primary-btn" type="button">同步云端 Top100</button>
+  </header>
+
+  <main class="shell">
+    <nav class="tabs" aria-label="页面导航">
+      <button class="tab active" data-tab="home" type="button">主页</button>
+      <button class="tab" data-tab="ranking" type="button">排行榜</button>
+      <button class="tab" data-tab="watchlist" type="button">自选股</button>
+      <button class="tab" data-tab="logic" type="button">选股逻辑</button>
+    </nav>
+
+    <section id="home" class="page active">
+      <div class="status-grid">
+        <article class="status-card">
+          <span>最新数据更新时间</span>
+          <strong id="generatedAt">-</strong>
+        </article>
+        <article class="status-card">
+          <span>最新评分交易日</span>
+          <strong id="tradeDate">-</strong>
+        </article>
+        <article class="status-card">
+          <span>已同步股票数量</span>
+          <strong id="totalCount">0</strong>
+        </article>
+        <article class="status-card">
+          <span>模型版本</span>
+          <strong id="modelVersion">-</strong>
+        </article>
+      </div>
+
+      <section class="panel">
+        <h2>同步状态</h2>
+        <p id="syncStatus" class="muted">打开网页后会自动读取 GitHub 最新结果，也可以手动点击同步。</p>
+        <div class="actions">
+          <button id="syncBtn2" class="primary-btn" type="button">同步云端 Top100</button>
+          <button id="goRankingBtn" class="secondary-btn" type="button">查看最新排行榜</button>
+        </div>
+      </section>
+
+      <section class="notice">
+        网页端只读取 GitHub 上的结果文件，不请求 Tushare，不连接 PostgreSQL，也不需要任何 Token。
+      </section>
+    </section>
+
+    <section id="ranking" class="page">
+      <div class="toolbar">
+        <div class="segmented" aria-label="排行榜数量">
+          <button class="limit active" data-limit="50" type="button">Top50</button>
+          <button class="limit" data-limit="100" type="button">Top100</button>
+          <button class="limit" data-limit="200" type="button">Top200</button>
+          <button class="limit" data-limit="all" type="button">全部</button>
+        </div>
+        <label class="search">
+          <span>搜索</span>
+          <input id="searchInput" type="search" placeholder="股票代码 / 名称 / 行业">
+        </label>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>排名</th>
+              <th>代码</th>
+              <th>名称</th>
+              <th>行业</th>
+              <th>总分</th>
+              <th>信号等级</th>
+              <th>自选</th>
+            </tr>
+          </thead>
+          <tbody id="rankingBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="watchlist" class="page">
+      <section class="panel">
+        <h2>自选股</h2>
+        <p class="muted">自选股保存在当前浏览器本地。同步新数据不会清空自选股。</p>
+      </section>
+      <div id="watchlistBody" class="cards"></div>
+    </section>
+
+    <section id="logic" class="page">
+      <div id="logicMeta" class="panel muted">暂无云端选股逻辑，请先同步。</div>
+      <div id="logicBody" class="logic-list"></div>
+    </section>
+  </main>
+
+  <dialog id="detailDialog" class="detail-dialog">
+    <div class="dialog-head">
+      <h2 id="detailTitle">股票详情</h2>
+      <button id="closeDetailBtn" class="icon-btn" type="button" aria-label="关闭">×</button>
+    </div>
+    <div id="detailBody" class="detail-body"></div>
+  </dialog>
+
+  <script src="./app.js"></script>
+</body>
+</html>
