@@ -65,11 +65,13 @@ test -f outputs/mobile/latest_score.json
 test -f outputs/mobile/mobile_result_pack.zip
 test -f docs/results/latest_score_top100.json
 test -f docs/results/strategy_logic.json
+test -d docs/results/charts
 
 ls -lh outputs/mobile/latest_score.json outputs/mobile/mobile_result_pack.zip docs/results/latest_score_top100.json docs/results/strategy_logic.json
+find docs/results/charts -maxdepth 1 -name '*.json' | wc -l
 
-git add docs/results/latest_score_top100.json docs/results/strategy_logic.json
-if git diff --cached --quiet -- docs/results/latest_score_top100.json docs/results/strategy_logic.json; then
+git add docs/results/latest_score_top100.json docs/results/strategy_logic.json docs/results/charts
+if git diff --cached --quiet -- docs/results/latest_score_top100.json docs/results/strategy_logic.json docs/results/charts; then
     echo "GitHub Top100 和选股逻辑无变化，无需提交。"
 else
     TRADE_DATE="$(python3 - <<'PY'
@@ -79,6 +81,6 @@ p = Path("docs/results/latest_score_top100.json")
 print(json.loads(p.read_text(encoding="utf-8")).get("trade_date", "unknown"))
 PY
 )"
-    git commit -m "Update Top100 score results ${TRADE_DATE}" -- docs/results/latest_score_top100.json docs/results/strategy_logic.json
+    git commit -m "Update Top100 score results ${TRADE_DATE}" -- docs/results/latest_score_top100.json docs/results/strategy_logic.json docs/results/charts
     push_origin_main
 fi

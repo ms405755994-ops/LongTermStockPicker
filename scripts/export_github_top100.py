@@ -3,9 +3,19 @@ import json
 import sys
 from pathlib import Path
 
+from pg_score_and_export import (
+    PgSchema,
+    connect_postgres,
+    ema,
+    load_dailies,
+    load_env,
+    years_before,
+)
+
 SOURCE = Path("outputs/mobile/latest_score.json")
 TARGET = Path("docs/results/latest_score_top100.json")
 LOGIC_TARGET = Path("docs/results/strategy_logic.json")
+CHART_DIR = Path("docs/results/charts")
 
 
 def build_strategy_logic(payload):
@@ -158,6 +168,114 @@ def build_strategy_logic(payload):
     }
 
 
+def month_key(trade_date):
+    return str(trade_date or "")[:6]
+
+
+def build_monthly_bars(dailies):
+    buckets = []
+    current_key = None
+    current = None
+    for row in dailies:
+        key = month_key(row.get("trade_date"))
+        if not key:
+            continue
+        if key != current_key:
+            if current:
+                buckets.append(current)
+            current_key = key
+            current = {
+                "date": row.get("trade_date"),
+                "open": row.get("open"),
+                "high": row.get("high"),
+                "low": row.get("low"),
+                "close": row.get("close"),
+                "volume": row.get("vol") or 0.0,
+            }
+            continue
+        current["date"] = row.get("trade_date")
+        current["high"] = max(v for v in [current.get("high"), row.get("high")] if v is not None) if row.get("high") is not None else current.get("high")
+        current["low"] = min(v for v in [current.get("low"), row.get("low")] if v is not None) if row.get("low") is not None else current.get("low")
+        current["close"] = row.get("close")
+        current["volume"] = (current.get("volume") or 0.0) + (row.get("vol") or 0.0)
+    if current:
+        buckets.append(current)
+    return [row for row in buckets if row.get("open") is not None and row.get("high") is not None and row.get("low") is not None and row.get("close") is not None]
+
+
+def monthly_macd(closes):
+    if not closes:
+        return []
+    ema12 = ema(closes, 12)
+    ema26 = ema(closes, 26)
+    dif = [a - b for a, b in zip(ema12, ema26)]
+    dea = ema(dif, 9)
+    return [
+        {
+            "dif": round(d, 6),
+            "dea": round(e, 6),
+            "bar": round((d - e) * 2.0, 6),
+        }
+        for d, e in zip(dif, dea)
+    ]
+
+
+def rounded(value, digits=4):
+    if value is None:
+        return None
+    return round(float(value), digits)
+
+
+def write_chart_files(results):
+    CHART_DIR.mkdir(parents=True, exist_ok=True)
+    for old in CHART_DIR.glob("*.json"):
+        old.unlink()
+    if not results:
+        return 0
+    env = load_env()
+    conn = connect_postgres(env)
+    written = 0
+    try:
+        schema = PgSchema(conn)
+        for row in results:
+            ts_code = row.get("ts_code")
+            trade_date = row.get("trade_date")
+            start_date = years_before(trade_date, 10)
+            if not ts_code or not trade_date or not start_date:
+                continue
+            dailies = load_dailies(conn, schema, ts_code, start_date, trade_date)
+            monthly = build_monthly_bars(dailies)
+            macd = monthly_macd([item["close"] for item in monthly])
+            points = []
+            for item, macd_item in zip(monthly, macd):
+                points.append(
+                    {
+                        "date": item["date"],
+                        "open": rounded(item["open"]),
+                        "high": rounded(item["high"]),
+                        "low": rounded(item["low"]),
+                        "close": rounded(item["close"]),
+                        "volume": rounded(item.get("volume"), 2),
+                        "dif": macd_item["dif"],
+                        "dea": macd_item["dea"],
+                        "macd": macd_item["bar"],
+                    }
+                )
+            payload = {
+                "ts_code": ts_code,
+                "name": row.get("name") or "",
+                "trade_date": trade_date,
+                "price_type": "qfq",
+                "period": "monthly",
+                "points": points,
+            }
+            (CHART_DIR / f"{ts_code}.json").write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+            written += 1
+    finally:
+        conn.close()
+    return written
+
+
 def main():
     if not SOURCE.exists():
         print(f"缺少 {SOURCE}，请先运行 scripts/pg_score_and_export.py", file=sys.stderr)
@@ -175,8 +293,10 @@ def main():
     TARGET.parent.mkdir(parents=True, exist_ok=True)
     TARGET.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
     LOGIC_TARGET.write_text(json.dumps(build_strategy_logic(payload), ensure_ascii=False, indent=2), encoding="utf-8")
+    chart_count = write_chart_files(results)
     print(f"已生成 GitHub Top100: {TARGET}")
     print(f"已生成 GitHub 选股逻辑: {LOGIC_TARGET}")
+    print(f"已生成月线图表数据: {chart_count}")
     print(f"trade_date: {out.get('trade_date')}")
     print(f"model_version: {out.get('model_version')}")
     print(f"top100_count: {len(results)}")

@@ -1,5 +1,6 @@
 const RESULT_URL = "./results/latest_score_top100.json";
 const LOGIC_URL = "./results/strategy_logic.json";
+const CHART_BASE_URL = "./results/charts/";
 const STORE_RESULTS = "lsp_web_results_v1";
 const STORE_LOGIC = "lsp_web_logic_v1";
 const STORE_WATCHLIST = "lsp_web_watchlist_v1";
@@ -174,11 +175,20 @@ function renderLogic() {
   }).join("");
 }
 
-function openDetail(code) {
+async function openDetail(code) {
   const row = state.results.find((item) => item.ts_code === code);
   if (!row) return;
   el("detailTitle").textContent = `${row.ts_code} ${text(row.name)}`;
   el("detailBody").innerHTML = `
+    <section class="chart-panel">
+      <div class="chart-head">
+        <h3>10年月线图</h3>
+        <span id="chartStatus" class="muted">正在加载前复权月线图表...</span>
+      </div>
+      <canvas id="klineCanvas" class="stock-chart" height="260"></canvas>
+      <canvas id="volumeCanvas" class="stock-chart small" height="120"></canvas>
+      <canvas id="macdCanvas" class="stock-chart small" height="150"></canvas>
+    </section>
     <div class="detail-grid">
       ${metric("行业", row.industry)}
       ${metric("交易日", row.trade_date)}
@@ -208,10 +218,176 @@ function openDetail(code) {
     </section>
   `;
   el("detailDialog").showModal();
+  await loadAndRenderChart(code);
+}
+
+async function loadAndRenderChart(code) {
+  const status = el("chartStatus");
+  try {
+    const chart = await fetchJson(`${CHART_BASE_URL}${code}.json?t=${Date.now()}`);
+    if (!Array.isArray(chart.points) || chart.points.length === 0) throw new Error("图表数据为空");
+    status.textContent = `前复权月线，${chart.points.length} 个月`;
+    drawKlineChart(el("klineCanvas"), chart.points);
+    drawVolumeChart(el("volumeCanvas"), chart.points);
+    drawMacdChart(el("macdCanvas"), chart.points);
+  } catch (error) {
+    status.textContent = `图表加载失败：${error.message || error}`;
+  }
 }
 
 function metric(label, value) {
   return `<div class="metric"><span>${escapeHtml(label)}</span><strong>${escapeHtml(text(value))}</strong></div>`;
+}
+
+function setupCanvas(canvas) {
+  const rect = canvas.getBoundingClientRect();
+  const ratio = window.devicePixelRatio || 1;
+  const width = Math.max(320, Math.floor(rect.width || canvas.parentElement.clientWidth));
+  const height = Number(canvas.getAttribute("height")) || 220;
+  canvas.width = Math.floor(width * ratio);
+  canvas.height = Math.floor(height * ratio);
+  canvas.style.height = `${height}px`;
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  ctx.clearRect(0, 0, width, height);
+  return { ctx, width, height };
+}
+
+function drawFrame(ctx, width, height, title) {
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, width, height);
+  ctx.strokeStyle = "#d8e0e4";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(0.5, 0.5, width - 1, height - 1);
+  ctx.fillStyle = "#34434c";
+  ctx.font = "13px system-ui, sans-serif";
+  ctx.fillText(title, 12, 20);
+}
+
+function drawKlineChart(canvas, points) {
+  const { ctx, width, height } = setupCanvas(canvas);
+  drawFrame(ctx, width, height, "10年月K线（前复权）");
+  const pad = { left: 44, right: 14, top: 34, bottom: 24 };
+  const areaW = width - pad.left - pad.right;
+  const areaH = height - pad.top - pad.bottom;
+  const highs = points.map((p) => Number(p.high)).filter(Number.isFinite);
+  const lows = points.map((p) => Number(p.low)).filter(Number.isFinite);
+  const max = Math.max(...highs);
+  const min = Math.min(...lows);
+  const scale = (v) => pad.top + (max - v) / Math.max(max - min, 0.0001) * areaH;
+  const step = areaW / Math.max(points.length, 1);
+  const bodyW = Math.max(3, Math.min(9, step * 0.58));
+  drawYAxis(ctx, pad, width, height, min, max);
+  points.forEach((p, i) => {
+    const x = pad.left + i * step + step / 2;
+    const open = Number(p.open);
+    const close = Number(p.close);
+    const high = Number(p.high);
+    const low = Number(p.low);
+    const up = close >= open;
+    ctx.strokeStyle = up ? "#d93025" : "#138a5b";
+    ctx.fillStyle = ctx.strokeStyle;
+    ctx.beginPath();
+    ctx.moveTo(x, scale(high));
+    ctx.lineTo(x, scale(low));
+    ctx.stroke();
+    const y = Math.min(scale(open), scale(close));
+    const h = Math.max(1, Math.abs(scale(open) - scale(close)));
+    ctx.fillRect(x - bodyW / 2, y, bodyW, h);
+  });
+  drawXAxis(ctx, points, pad, width, height);
+}
+
+function drawVolumeChart(canvas, points) {
+  const { ctx, width, height } = setupCanvas(canvas);
+  drawFrame(ctx, width, height, "月成交量红绿柱");
+  const pad = { left: 44, right: 14, top: 30, bottom: 24 };
+  const areaW = width - pad.left - pad.right;
+  const areaH = height - pad.top - pad.bottom;
+  const max = Math.max(...points.map((p) => Number(p.volume) || 0), 1);
+  const step = areaW / Math.max(points.length, 1);
+  const barW = Math.max(2, Math.min(8, step * 0.62));
+  points.forEach((p, i) => {
+    const open = Number(p.open);
+    const close = Number(p.close);
+    const h = (Number(p.volume) || 0) / max * areaH;
+    const x = pad.left + i * step + step / 2 - barW / 2;
+    ctx.fillStyle = close >= open ? "#d93025" : "#138a5b";
+    ctx.fillRect(x, pad.top + areaH - h, barW, h);
+  });
+  drawXAxis(ctx, points, pad, width, height);
+}
+
+function drawMacdChart(canvas, points) {
+  const { ctx, width, height } = setupCanvas(canvas);
+  drawFrame(ctx, width, height, "月线MACD红绿柱");
+  const pad = { left: 44, right: 14, top: 30, bottom: 24 };
+  const areaW = width - pad.left - pad.right;
+  const areaH = height - pad.top - pad.bottom;
+  const values = points.flatMap((p) => [Number(p.macd), Number(p.dif), Number(p.dea)]).filter(Number.isFinite);
+  const maxAbs = Math.max(...values.map((v) => Math.abs(v)), 0.01);
+  const mid = pad.top + areaH / 2;
+  const y = (v) => mid - v / maxAbs * (areaH / 2 - 6);
+  const step = areaW / Math.max(points.length, 1);
+  const barW = Math.max(2, Math.min(8, step * 0.62));
+  ctx.strokeStyle = "#8a98a3";
+  ctx.beginPath();
+  ctx.moveTo(pad.left, mid);
+  ctx.lineTo(width - pad.right, mid);
+  ctx.stroke();
+  points.forEach((p, i) => {
+    const value = Number(p.macd) || 0;
+    const x = pad.left + i * step + step / 2 - barW / 2;
+    ctx.fillStyle = value >= 0 ? "#d93025" : "#138a5b";
+    ctx.fillRect(x, Math.min(mid, y(value)), barW, Math.max(1, Math.abs(y(value) - mid)));
+  });
+  drawLine(ctx, points.map((p) => Number(p.dif)), pad, step, y, "#0d47a1");
+  drawLine(ctx, points.map((p) => Number(p.dea)), pad, step, y, "#b45f06");
+  ctx.fillStyle = "#0d47a1";
+  ctx.fillText("DIF", width - 72, 20);
+  ctx.fillStyle = "#b45f06";
+  ctx.fillText("DEA", width - 40, 20);
+  drawXAxis(ctx, points, pad, width, height);
+}
+
+function drawLine(ctx, values, pad, step, y, color) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  values.forEach((value, i) => {
+    if (!Number.isFinite(value)) return;
+    const x = pad.left + i * step + step / 2;
+    if (i === 0) ctx.moveTo(x, y(value));
+    else ctx.lineTo(x, y(value));
+  });
+  ctx.stroke();
+}
+
+function drawYAxis(ctx, pad, width, height, min, max) {
+  ctx.strokeStyle = "#eef1f3";
+  ctx.fillStyle = "#60717c";
+  ctx.font = "12px system-ui, sans-serif";
+  for (let i = 0; i <= 4; i += 1) {
+    const y = pad.top + (height - pad.top - pad.bottom) * i / 4;
+    const value = max - (max - min) * i / 4;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(width - pad.right, y);
+    ctx.stroke();
+    ctx.fillText(value.toFixed(2), 6, y + 4);
+  }
+}
+
+function drawXAxis(ctx, points, pad, width, height) {
+  ctx.fillStyle = "#60717c";
+  ctx.font = "12px system-ui, sans-serif";
+  const labels = 5;
+  for (let i = 0; i < labels; i += 1) {
+    const idx = Math.round((points.length - 1) * i / (labels - 1));
+    const label = String(points[idx]?.date || "").slice(0, 6);
+    const x = pad.left + (width - pad.left - pad.right) * i / (labels - 1);
+    ctx.fillText(label, Math.min(width - 54, Math.max(4, x - 18)), height - 7);
+  }
 }
 
 function toggleWatch(code) {
