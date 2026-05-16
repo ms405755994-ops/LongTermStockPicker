@@ -445,42 +445,60 @@ def ema(values, period):
 
 
 def macd_status(closes):
-    if len(closes) < 3:
+    if len(closes) < 6:
         return "震荡"
     ema12 = ema(closes, 12)
     ema26 = ema(closes, 26)
     dif = [a - b for a, b in zip(ema12, ema26)]
     dea = ema(dif, 9)
     bar = [(d - e) * 2.0 for d, e in zip(dif, dea)]
-    if len(bar) < 3:
+    if len(bar) < 6:
         return "震荡"
     b0, b1, b2 = bar[-3], bar[-2], bar[-1]
+    recent_bars = bar[-5:]
+    recent_dif = dif[-5:]
+    bar_rising = b0 < b1 < b2
+    bar_falling = b0 > b1 > b2
+    dif_rising = recent_dif[-1] > recent_dif[-2] > recent_dif[-3]
+    dif_falling = recent_dif[-1] < recent_dif[-2] < recent_dif[-3]
     if dif[-2] <= dea[-2] and dif[-1] > dea[-1]:
         return "金叉"
     if dif[-2] >= dea[-2] and dif[-1] < dea[-1]:
         return "死叉"
-    if b2 < 0 and b0 < 0 and b1 < 0:
-        if abs(b0) > abs(b1) > abs(b2):
+    if b2 < 0 and all(v < 0 for v in recent_bars[-3:]):
+        if bar_rising and dif_rising:
             return "绿柱缩短"
-        if abs(b0) < abs(b1) < abs(b2):
+        if bar_falling or dif_falling:
             return "绿柱放大"
-    if b2 > 0 and b0 > 0 and b1 > 0:
-        if b0 < b1 < b2:
+    if b2 > 0 and all(v > 0 for v in recent_bars[-3:]):
+        if bar_rising and dif_rising:
             return "红柱放大"
+        if dif_falling:
+            return "红柱缩短/减弱"
         return "红柱缩短/减弱"
     return "震荡"
 
 
 def macd_score(status):
     return {
-        "绿柱缩短": 75.0,
+        "绿柱缩短": 82.0,
         "金叉": 90.0,
         "红柱放大": 85.0,
-        "红柱缩短/减弱": 65.0,
-        "绿柱放大": 30.0,
-        "死叉": 20.0,
-        "震荡": 50.0,
+        "红柱缩短/减弱": 45.0,
+        "绿柱放大": 10.0,
+        "死叉": 10.0,
+        "震荡": 35.0,
     }.get(status, 50.0)
+
+
+def macd_repair_ok(monthly, weekly, daily):
+    repair = {"绿柱缩短", "金叉", "红柱放大"}
+    weak = {"绿柱放大", "死叉"}
+    if monthly in weak:
+        return False
+    if monthly in repair or weekly in repair:
+        return True
+    return daily in repair and weekly not in weak and monthly != "红柱缩短/减弱"
 
 
 def resample_last_close(dailies, key_len):
@@ -589,6 +607,8 @@ def score_stock(conn, schema, basic, ownership, start_date, end_date):
     daily_status = macd_status(closes)
     weekly_status = macd_status(weekly)
     monthly_status = macd_status(monthly)
+    if not macd_repair_ok(monthly_status, weekly_status, daily_status):
+        return None, f"MACD未出现底部修复（月线{monthly_status}，周线{weekly_status}，日线{daily_status}）"
     macd_multi = macd_score(monthly_status) * 0.45 + macd_score(weekly_status) * 0.35 + macd_score(daily_status) * 0.20
     fin = financial_score(conn, schema, ts_code)
     fin_score = fin["score"]
@@ -695,6 +715,20 @@ def upsert_scores(conn, rows):
     return len(rows)
 
 
+def delete_scores_for_codes(conn, trade_date, ts_codes):
+    codes = [code for code in ts_codes if code]
+    if not codes:
+        return 0
+    cur = conn.cursor()
+    cur.execute(
+        "DELETE FROM score_result WHERE trade_date = %s AND ts_code = ANY(%s)",
+        (trade_date, codes),
+    )
+    deleted = cur.rowcount
+    conn.commit()
+    return deleted
+
+
 def write_outputs(trade_date, results):
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     results = sorted(results, key=lambda row: row["total_score"], reverse=True)
@@ -772,6 +806,7 @@ def main():
                 results.append(result)
             else:
                 skipped.append((basic["ts_code"], reason))
+        delete_scores_for_codes(conn, end_date, [basic["ts_code"] for basic in basics])
         written = upsert_scores(conn, results)
         write_outputs(end_date, results)
         print("PostgreSQL 连接成功: True")
