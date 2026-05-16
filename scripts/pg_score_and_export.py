@@ -542,7 +542,7 @@ def price_position_score(closes, current_close, lows=None):
             score += 10.0
         elif distance <= 0.40:
             score += 5.0
-        elif distance > 1.00:
+        elif distance > 0.50:
             score -= 10.0
     return clamp(score), percentile, distance, low
 
@@ -602,8 +602,8 @@ def score_stock(conn, schema, basic, ownership, start_date, end_date):
     current_close = closes[-1]
     lows = [row["low"] for row in dailies if row.get("low") is not None]
     price_score, percentile, distance, low = price_position_score(closes, current_close, lows)
-    if distance is not None and distance > 1.00:
-        return None, f"距离10年最低价超过100%（当前高于最低价{distance * 100:.2f}%）"
+    if distance is not None and distance > 0.50:
+        return None, f"距离10年最低价超过50%（当前高于最低价{distance * 100:.2f}%）"
     weekly = resample_weekly_last_close(dailies)
     monthly = resample_last_close(dailies, 6)
     daily_status = macd_status(closes)
@@ -617,7 +617,7 @@ def score_stock(conn, schema, basic, ownership, start_date, end_date):
     fin_note = fin["note"]
     own = ownership.get(ts_code, {"company_type": "未知", "score": 60.0, "source": "default", "remark": "CSV未配置，使用默认分"})
     ownership_score = own["score"]
-    total = price_score * 0.30 + macd_multi * 0.35 + fin_score * 0.25 + ownership_score * 0.10
+    total = price_score * 0.50 + macd_multi * 0.35 + fin_score * 0.14 + ownership_score * 0.01
     has_ten = has_years(first_date, latest_date, 10)
     data_warning = "" if has_ten else "历史数据不足10年，评分可信度下降"
     return {
