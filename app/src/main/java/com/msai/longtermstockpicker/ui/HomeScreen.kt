@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -23,11 +22,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.msai.longtermstockpicker.StockPickerViewModel
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -38,7 +35,6 @@ fun HomeScreen(
     viewModel: StockPickerViewModel,
     onGoResults: () -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
     val snackbar = remember { SnackbarHostState() }
     val status by viewModel.viewerStatus.collectAsState()
     val lastError by viewModel.lastError.collectAsState()
@@ -67,14 +63,13 @@ fun HomeScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("当前模式：电脑端计算 / GitHub同步 / 手机端查看", style = MaterialTheme.typography.titleMedium)
+            Text("当前模式：云端计算 / GitHub同步 / 手机端查看", style = MaterialTheme.typography.titleMedium)
             Text(
                 "最新数据更新时间：${status.generatedAt ?: "—"}\n" +
                     "最新评分交易日：${status.latestTradeDate ?: "—"}\n" +
                     "已导入股票数量：${status.importedCount}\n" +
                     "模型版本：${status.modelVersion ?: "—"}\n" +
-                    "上次同步时间：${status.lastSyncAt?.let { formatMillis(it) } ?: "—"}\n" +
-                    "GitHub 数据地址：${viewModel.resultUrl}",
+                    "上次同步时间：${status.lastSyncAt?.let { formatMillis(it) } ?: "—"}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.secondary,
             )
@@ -112,17 +107,9 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxWidth(),
             ) { Text("查看最新排行榜") }
 
-            OutlinedButton(
-                onClick = {
-                    viewModel.clearLocalResults()
-                    scope.launch { snackbar.showSnackbar("已清空本地结果") }
-                },
-                modifier = Modifier.fillMaxWidth(),
-            ) { Text("清空本地结果") }
-
             Spacer(Modifier.height(16.dp))
             Text(
-                "手机端只同步 GitHub Top100 结果并保存到本地 Room。手机端不请求 Tushare，也不需要 Token。",
+                "手机端只同步 GitHub Top100 结果和选股逻辑，并保存到本地 Room。手机端不请求 Tushare，也不需要 Token。",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.secondary,
             )

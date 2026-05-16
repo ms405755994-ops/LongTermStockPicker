@@ -4,6 +4,8 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.msai.longtermstockpicker.data.MobileResultPack
+import com.msai.longtermstockpicker.data.StrategyLogicFile
+import com.msai.longtermstockpicker.data.StrategyLogicSection
 import com.msai.longtermstockpicker.data.db.DatabaseProvider
 import com.msai.longtermstockpicker.data.db.ImportMetaEntity
 import com.msai.longtermstockpicker.data.db.WatchlistEntity
@@ -61,6 +63,15 @@ data class WatchlistRow(
     val latestSignalLevel: String?,
 )
 
+data class StrategyLogicState(
+    val generatedAt: String? = null,
+    val tradeDate: String? = null,
+    val modelVersion: String? = null,
+    val syncedAt: Long? = null,
+    val sections: List<StrategyLogicSection> = emptyList(),
+    val errorMessage: String? = null,
+)
+
 class StockPickerViewModel(app: Application) : AndroidViewModel(app) {
     private val db = DatabaseProvider.get(app.applicationContext)
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
@@ -93,12 +104,16 @@ class StockPickerViewModel(app: Application) : AndroidViewModel(app) {
     private val _watchlistRows = MutableStateFlow<List<WatchlistRow>>(emptyList())
     val watchlistRows: StateFlow<List<WatchlistRow>> = _watchlistRows.asStateFlow()
 
+    private val _strategyLogic = MutableStateFlow(StrategyLogicState())
+    val strategyLogic: StateFlow<StrategyLogicState> = _strategyLogic.asStateFlow()
+
     private val _navigateToResults = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val navigateToResults: SharedFlow<Unit> = _navigateToResults.asSharedFlow()
 
     init {
         refreshStatus()
         refreshWatchlist()
+        loadCachedStrategyLogic()
         loadLatestRanking(100, navigate = false)
     }
 
@@ -150,6 +165,7 @@ class StockPickerViewModel(app: Application) : AndroidViewModel(app) {
                     tradeDate = result.tradeDate,
                     modelVersion = result.modelVersion,
                 )
+                syncStrategyLogic(now)
                 refreshStatus()
                 refreshWatchlist()
             }.onFailure { e ->
@@ -158,6 +174,35 @@ class StockPickerViewModel(app: Application) : AndroidViewModel(app) {
                     isLoading = false,
                 )
             }
+        }
+    }
+
+    private suspend fun syncStrategyLogic(syncedAt: Long) {
+        runCatching {
+            val text = downloadBytes(DEFAULT_STRATEGY_LOGIC_URL).toString(Charsets.UTF_8)
+            val logic = json.decodeFromString(StrategyLogicFile.serializer(), text)
+            prefs.edit()
+                .putString(KEY_STRATEGY_LOGIC_JSON, text)
+                .putLong(KEY_STRATEGY_LOGIC_SYNC_AT, syncedAt)
+                .apply()
+            _strategyLogic.value = logic.toState(syncedAt)
+        }.onFailure { e ->
+            _strategyLogic.value = _strategyLogic.value.copy(
+                errorMessage = "选股逻辑同步失败：${e.message ?: e::class.java.simpleName}",
+            )
+        }
+    }
+
+    private fun loadCachedStrategyLogic() {
+        val text = prefs.getString(KEY_STRATEGY_LOGIC_JSON, null).orEmpty()
+        val syncedAt = prefs.getLong(KEY_STRATEGY_LOGIC_SYNC_AT, 0L).takeIf { it > 0L }
+        if (text.isBlank()) return
+        runCatching {
+            json.decodeFromString(StrategyLogicFile.serializer(), text)
+        }.onSuccess {
+            _strategyLogic.value = it.toState(syncedAt)
+        }.onFailure { e ->
+            _strategyLogic.value = StrategyLogicState(errorMessage = "本地选股逻辑读取失败：${e.message ?: e::class.java.simpleName}")
         }
     }
 
@@ -232,6 +277,7 @@ class StockPickerViewModel(app: Application) : AndroidViewModel(app) {
         val pack = json.decodeFromString(MobileResultPack.serializer(), text)
         if (pack.results.isEmpty()) error("结果文件中 results 为空")
         val now = System.currentTimeMillis()
+        db.scoreResultDao().deleteByTradeDate(pack.tradeDate)
         db.scoreResultDao().upsertAll(pack.results.map { it.toEntity(now) })
         db.importMetaDao().upsert(pack.toImportMeta(now))
         val result = ImportResult(
@@ -278,6 +324,17 @@ class StockPickerViewModel(app: Application) : AndroidViewModel(app) {
 
     private companion object {
         const val DEFAULT_RESULT_URL = "https://raw.githubusercontent.com/ms405755994-ops/LongTermStockPicker/main/docs/results/latest_score_top100.json"
+        const val DEFAULT_STRATEGY_LOGIC_URL = "https://raw.githubusercontent.com/ms405755994-ops/LongTermStockPicker/main/docs/results/strategy_logic.json"
         const val KEY_LAST_SYNC_AT = "last_sync_at"
+        const val KEY_STRATEGY_LOGIC_JSON = "strategy_logic_json"
+        const val KEY_STRATEGY_LOGIC_SYNC_AT = "strategy_logic_sync_at"
     }
 }
+
+private fun StrategyLogicFile.toState(syncedAt: Long?): StrategyLogicState = StrategyLogicState(
+    generatedAt = generatedAt.takeIf { it.isNotBlank() },
+    tradeDate = tradeDate.takeIf { it.isNotBlank() },
+    modelVersion = modelVersion.takeIf { it.isNotBlank() },
+    syncedAt = syncedAt,
+    sections = sections,
+)

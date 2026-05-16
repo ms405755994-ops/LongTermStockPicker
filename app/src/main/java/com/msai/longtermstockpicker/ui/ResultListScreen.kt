@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,6 +48,10 @@ fun ResultListScreen(
     val watchlistCodes by viewModel.watchlistCodes.collectAsState()
     var topLimit by remember { mutableStateOf(100) }
     var query by remember { mutableStateOf("") }
+
+    LaunchedEffect(topLimit) {
+        viewModel.loadLatestRanking(topLimit, navigate = false)
+    }
 
     Scaffold(
         topBar = {
@@ -80,7 +85,6 @@ fun ResultListScreen(
                         TextButton(
                             onClick = {
                                 topLimit = limit
-                                viewModel.loadLatestRanking(limit)
                             },
                             modifier = Modifier.weight(1f),
                         ) {

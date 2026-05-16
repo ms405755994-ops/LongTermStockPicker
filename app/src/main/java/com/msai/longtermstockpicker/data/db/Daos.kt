@@ -117,6 +117,9 @@ interface ScoreResultDao {
     @Query("SELECT COUNT(*) FROM score_result")
     suspend fun count(): Int
 
+    @Query("DELETE FROM score_result WHERE tradeDate = :tradeDate")
+    suspend fun deleteByTradeDate(tradeDate: String)
+
     @Query("DELETE FROM score_result")
     suspend fun deleteAll()
 }
