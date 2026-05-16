@@ -60,7 +60,13 @@ async function syncCloud() {
 }
 
 async function fetchJson(url) {
-  const resp = await fetch(url, { cache: "no-store" });
+  const resp = await fetch(url, {
+    cache: "no-store",
+    headers: {
+      "Cache-Control": "no-cache",
+      "Pragma": "no-cache",
+    },
+  });
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   return resp.json();
 }
