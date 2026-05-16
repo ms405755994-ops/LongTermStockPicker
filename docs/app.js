@@ -200,7 +200,7 @@ async function openDetail(code) {
         <button class="chart-tab" data-period="daily" type="button">日线</button>
       </div>
       <div class="chart-tools" aria-label="图表缩放">
-        <button class="chart-tool" data-range="all" type="button">全景</button>
+        <button class="chart-tool" data-range="all" type="button">全部</button>
         <button class="chart-tool" data-range="5y" type="button">5年</button>
         <button class="chart-tool" data-range="3y" type="button">3年</button>
         <button class="chart-tool" data-range="1y" type="button">1年</button>
@@ -241,6 +241,7 @@ async function openDetail(code) {
     </section>
   `;
   el("detailDialog").showModal();
+  resetDetailDialogSize();
   state.chart = null;
   state.chartPeriod = "monthly";
   state.chartVisibleCounts = {};
@@ -688,6 +689,30 @@ function bindEvents() {
   });
 
   el("closeDetailBtn").addEventListener("click", () => el("detailDialog").close());
+  el("fullscreenDetailBtn").addEventListener("click", toggleDetailFullscreen);
+  if ("ResizeObserver" in window) {
+    const observer = new ResizeObserver(() => {
+      if (el("detailDialog").open && state.chart) {
+        window.requestAnimationFrame(() => renderChartPeriod(state.chartPeriod));
+      }
+    });
+    observer.observe(el("detailDialog"));
+  }
+}
+
+function toggleDetailFullscreen() {
+  const dialog = el("detailDialog");
+  dialog.classList.toggle("fullscreen");
+  el("fullscreenDetailBtn").textContent = dialog.classList.contains("fullscreen") ? "↙" : "⛶";
+  setTimeout(() => renderChartPeriod(state.chartPeriod), 0);
+}
+
+function resetDetailDialogSize() {
+  const dialog = el("detailDialog");
+  dialog.classList.remove("fullscreen");
+  dialog.style.width = "";
+  dialog.style.height = "";
+  el("fullscreenDetailBtn").textContent = "⛶";
 }
 
 bindEvents();

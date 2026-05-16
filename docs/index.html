@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>中长线选股结果查看器</title>
-  <link rel="stylesheet" href="./styles.css?v=20260516-chart-zoom">
+  <link rel="stylesheet" href="./styles.css?v=20260516-resizable-dialog">
 </head>
 <body>
   <header class="app-header">
@@ -105,11 +105,14 @@
   <dialog id="detailDialog" class="detail-dialog">
     <div class="dialog-head">
       <h2 id="detailTitle">股票详情</h2>
-      <button id="closeDetailBtn" class="icon-btn" type="button" aria-label="关闭">×</button>
+      <div class="dialog-actions">
+        <button id="fullscreenDetailBtn" class="icon-btn" type="button" aria-label="全屏" title="全屏">⛶</button>
+        <button id="closeDetailBtn" class="icon-btn" type="button" aria-label="关闭" title="关闭">×</button>
+      </div>
     </div>
     <div id="detailBody" class="detail-body"></div>
   </dialog>
 
-  <script src="./app.js?v=20260516-chart-zoom"></script>
+  <script src="./app.js?v=20260516-resizable-dialog"></script>
 </body>
 </html>

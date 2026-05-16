@@ -294,10 +294,25 @@ tbody tr:hover {
 
 .detail-dialog {
   width: min(820px, calc(100vw - 24px));
+  min-width: min(420px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+  height: auto;
+  min-height: 420px;
+  max-height: calc(100vh - 24px);
   border: 0;
   border-radius: 8px;
   padding: 0;
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+  resize: both;
+  overflow: hidden;
+}
+
+.detail-dialog.fullscreen {
+  width: calc(100vw - 24px);
+  height: calc(100vh - 24px);
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+  resize: none;
 }
 
 .detail-dialog::backdrop {
@@ -317,6 +332,12 @@ tbody tr:hover {
   margin: 0;
 }
 
+.dialog-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .icon-btn {
   width: 40px;
   min-height: 40px;
@@ -325,8 +346,13 @@ tbody tr:hover {
 
 .detail-body {
   padding: 18px;
-  max-height: 72vh;
+  height: calc(100% - 73px);
+  max-height: calc(100vh - 110px);
   overflow: auto;
+}
+
+.detail-dialog.fullscreen .detail-body {
+  max-height: none;
 }
 
 .chart-panel {
