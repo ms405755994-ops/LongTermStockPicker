@@ -1,16 +1,18 @@
 :root {
-  color-scheme: light;
-  --bg: #f4f6f8;
-  --surface: #ffffff;
-  --surface-soft: #eef4f2;
-  --text: #172026;
-  --muted: #60717c;
-  --line: #d8e0e4;
-  --primary: #0f6b63;
-  --primary-strong: #084a45;
-  --accent: #b45f06;
-  --danger: #b3261e;
-  --shadow: 0 10px 28px rgba(23, 32, 38, 0.08);
+  color-scheme: dark;
+  --bg: #0B1020;
+  --surface: #111827;
+  --surface-2: #172033;
+  --text: #E5E7EB;
+  --muted: #94A3B8;
+  --line: #1F2937;
+  --primary: #2563EB;
+  --primary-hover: #3B82F6;
+  --accent: #F59E0B;
+  --positive: #22C55E;
+  --danger: #EF4444;
+  --weak: #64748B;
+  --shadow: 0 18px 48px rgba(0, 0, 0, 0.36);
 }
 
 * {
@@ -35,14 +37,17 @@ input {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  padding: 28px max(24px, calc((100vw - 1180px) / 2)) 20px;
-  background: var(--surface);
+  padding: 30px max(24px, calc((100vw - 1180px) / 2)) 24px;
+  background:
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.30), transparent 34%),
+    linear-gradient(135deg, #0B1020 0%, #111C3B 56%, #0B1020 100%);
   border-bottom: 1px solid var(--line);
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.28);
 }
 
 .eyebrow {
   margin: 0 0 6px;
-  color: var(--primary);
+  color: var(--accent);
   font-size: 14px;
   font-weight: 700;
 }
@@ -85,6 +90,17 @@ h1 {
   color: var(--text);
 }
 
+.tab:hover,
+.limit:hover,
+.secondary-btn:hover,
+.watch-btn:hover,
+.icon-btn:hover,
+.chart-tab:hover,
+.chart-tool:hover {
+  border-color: var(--primary-hover);
+  background: #1A2540;
+}
+
 .tab.active,
 .limit.active,
 .primary-btn {
@@ -95,12 +111,17 @@ h1 {
 
 .primary-btn {
   padding: 0 18px;
-  font-weight: 700;
+  font-weight: 800;
+}
+
+.primary-btn:hover {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
 }
 
 .secondary-btn {
   padding: 0 18px;
-  color: var(--primary);
+  color: #BFDBFE;
   border-color: var(--primary);
   font-weight: 700;
 }
@@ -144,6 +165,7 @@ h1 {
   display: block;
   margin-top: 8px;
   font-size: 22px;
+  color: var(--text);
   overflow-wrap: anywhere;
 }
 
@@ -154,8 +176,8 @@ h1 {
 }
 
 .notice {
-  color: var(--primary-strong);
-  background: var(--surface-soft);
+  color: #BFDBFE;
+  background: var(--surface-2);
 }
 
 .actions {
@@ -195,6 +217,11 @@ h1 {
   border-radius: 8px;
   padding: 0 12px;
   background: var(--surface);
+  color: var(--text);
+}
+
+.search input::placeholder {
+  color: var(--weak);
 }
 
 .table-wrap {
@@ -213,52 +240,78 @@ table {
 
 th,
 td {
-  padding: 12px;
+  padding: 13px 12px;
   border-bottom: 1px solid var(--line);
   text-align: left;
   vertical-align: middle;
 }
 
 th {
-  background: #eef1f3;
-  color: #34434c;
+  background: var(--surface-2);
+  color: var(--muted);
   font-size: 14px;
+  font-weight: 700;
 }
 
 tbody tr {
   cursor: pointer;
+  background: var(--surface);
+}
+
+tbody tr:nth-child(even) {
+  background: #121C2E;
 }
 
 tbody tr:hover {
-  background: #f7faf9;
+  background: #1C2942;
 }
 
 .score {
-  color: var(--primary-strong);
-  font-weight: 800;
+  color: var(--accent);
+  font-weight: 900;
 }
 
 .tag {
   display: inline-flex;
   align-items: center;
   min-height: 28px;
-  padding: 0 9px;
-  border-radius: 6px;
-  background: #e7f1ef;
-  color: var(--primary-strong);
-  font-weight: 700;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.18);
+  color: var(--weak);
+  border: 1px solid rgba(100, 116, 139, 0.38);
+  font-weight: 800;
   white-space: nowrap;
 }
 
+.tag.strong {
+  color: var(--positive);
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.38);
+}
+
+.tag.watch {
+  color: var(--accent);
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.40);
+}
+
+.tag.risk {
+  color: var(--danger);
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.40);
+}
+
 .watch-btn {
-  padding: 0 10px;
+  padding: 0 11px;
   min-height: 34px;
-  color: var(--primary);
+  color: var(--muted);
 }
 
 .watch-btn.active {
   border-color: var(--accent);
   color: var(--accent);
+  background: rgba(245, 158, 11, 0.12);
 }
 
 .cards,
@@ -278,12 +331,13 @@ tbody tr:hover {
 }
 
 .logic-card.emphasized {
-  border-color: #f0c7c3;
-  background: #fff7f6;
+  border-color: rgba(245, 158, 11, 0.46);
+  background: #1A2338;
 }
 
 .logic-card.formula {
-  background: #f0f5f8;
+  background: var(--surface-2);
+  border-color: rgba(37, 99, 235, 0.42);
 }
 
 .logic-card pre {
@@ -299,10 +353,12 @@ tbody tr:hover {
   height: auto;
   min-height: 420px;
   max-height: calc(100vh - 24px);
-  border: 0;
+  border: 1px solid var(--line);
   border-radius: 8px;
   padding: 0;
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+  color: var(--text);
+  background: var(--surface);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.58);
   resize: both;
   overflow: hidden;
 }
@@ -316,7 +372,7 @@ tbody tr:hover {
 }
 
 .detail-dialog::backdrop {
-  background: rgba(15, 25, 31, 0.42);
+  background: rgba(0, 0, 0, 0.64);
 }
 
 .dialog-head {
@@ -326,6 +382,7 @@ tbody tr:hover {
   gap: 12px;
   padding: 16px 18px;
   border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
 }
 
 .dialog-head h2 {
@@ -360,7 +417,7 @@ tbody tr:hover {
   margin-bottom: 14px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fafcfd;
+  background: var(--surface-2);
 }
 
 .chart-head {
@@ -375,17 +432,18 @@ tbody tr:hover {
   margin: 0;
 }
 
-.chart-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 8px 0 10px;
-}
-
+.chart-tabs,
 .chart-tools {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.chart-tabs {
+  margin: 8px 0 10px;
+}
+
+.chart-tools {
   margin: 0 0 12px;
 }
 
@@ -418,7 +476,7 @@ tbody tr:hover {
   width: 100%;
   margin-top: 10px;
   border-radius: 8px;
-  background: var(--surface);
+  background: #0F172A;
 }
 
 .stock-chart.small {
@@ -435,7 +493,7 @@ tbody tr:hover {
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fafcfd;
+  background: var(--surface-2);
 }
 
 .metric span {
@@ -446,6 +504,7 @@ tbody tr:hover {
 }
 
 .metric strong {
+  color: var(--text);
   overflow-wrap: anywhere;
 }
 
@@ -472,5 +531,10 @@ tbody tr:hover {
   .primary-btn,
   .secondary-btn {
     width: 100%;
+  }
+
+  th,
+  td {
+    padding: 14px 12px;
   }
 }

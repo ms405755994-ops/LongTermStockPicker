@@ -20,6 +20,21 @@ const state = {
 const el = (id) => document.getElementById(id);
 const fmt = (value, digits = 1) => Number.isFinite(Number(value)) ? Number(value).toFixed(digits) : "-";
 const text = (value) => value === null || value === undefined || value === "" ? "-" : String(value);
+const CHART_COLORS = {
+  bg: "#0F172A",
+  border: "#1F2937",
+  grid: "#1F2937",
+  text: "#94A3B8",
+  textStrong: "#E5E7EB",
+  up: "#EF4444",
+  down: "#22C55E",
+  dif: "#3B82F6",
+  dea: "#F59E0B",
+  latest: "#F59E0B",
+  low: "#22C55E",
+  zero: "#64748B",
+  labelText: "#0B1020",
+};
 
 function loadLocal() {
   try {
@@ -126,10 +141,10 @@ function renderRanking() {
         <td>${escapeHtml(text(row.name))}</td>
         <td>${escapeHtml(text(row.industry))}</td>
         <td class="score">${fmt(row.total_score, 1)}</td>
-        <td><span class="tag">${escapeHtml(text(row.signal_level))}</span></td>
+        <td><span class="tag ${signalClass(row.signal_level)}">${escapeHtml(text(row.signal_level))}</span></td>
         <td>
           <button class="watch-btn ${watched ? "active" : ""}" data-watch="${code}" type="button">
-            ${watched ? "已自选" : "加入"}
+            ${watched ? "★ 已自选" : "☆ 自选"}
           </button>
         </td>
       </tr>
@@ -153,7 +168,7 @@ function renderWatchlist() {
       <h3>${escapeHtml(row.ts_code)} ${escapeHtml(text(row.name))}</h3>
       <p class="muted">${escapeHtml(text(row.industry))} ｜ ${escapeHtml(text(row.trade_date))}</p>
       <p>总分 <strong class="score">${fmt(row.total_score, 1)}</strong> ｜ 信号等级 ${escapeHtml(text(row.signal_level))}</p>
-      <button class="watch-btn active" data-watch="${escapeHtml(row.ts_code)}" type="button">移除自选</button>
+      <button class="watch-btn active" data-watch="${escapeHtml(row.ts_code)}" type="button">★ 移除自选</button>
     </article>
   `).join("");
 }
@@ -384,6 +399,14 @@ function metric(label, value) {
   return `<div class="metric"><span>${escapeHtml(label)}</span><strong>${escapeHtml(text(value))}</strong></div>`;
 }
 
+function signalClass(signal) {
+  const value = String(signal || "");
+  if (value.includes("核心") || value.includes("优先")) return "strong";
+  if (value.includes("低位") || value.includes("观察")) return "watch";
+  if (value.includes("剔除") || value.includes("不关注") || value.includes("禁止")) return "risk";
+  return "weak";
+}
+
 function setupCanvas(canvas) {
   const rect = canvas.getBoundingClientRect();
   const ratio = window.devicePixelRatio || 1;
@@ -400,12 +423,12 @@ function setupCanvas(canvas) {
 }
 
 function drawFrame(ctx, width, height, title) {
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = CHART_COLORS.bg;
   ctx.fillRect(0, 0, width, height);
-  ctx.strokeStyle = "#d8e0e4";
+  ctx.strokeStyle = CHART_COLORS.border;
   ctx.lineWidth = 1;
   ctx.strokeRect(0.5, 0.5, width - 1, height - 1);
-  ctx.fillStyle = "#34434c";
+  ctx.fillStyle = CHART_COLORS.textStrong;
   ctx.font = "13px system-ui, sans-serif";
   ctx.fillText(title, 12, 20);
 }
@@ -431,7 +454,7 @@ function drawKlineChart(canvas, points, label) {
     const high = Number(p.high);
     const low = Number(p.low);
     const up = close >= open;
-    ctx.strokeStyle = up ? "#d93025" : "#138a5b";
+    ctx.strokeStyle = up ? CHART_COLORS.up : CHART_COLORS.down;
     ctx.fillStyle = ctx.strokeStyle;
     ctx.beginPath();
     ctx.moveTo(x, scale(high));
@@ -459,7 +482,7 @@ function drawVolumeChart(canvas, points, label) {
     const close = Number(p.close);
     const h = (Number(p.volume) || 0) / max * areaH;
     const x = pad.left + i * step + step / 2 - barW / 2;
-    ctx.fillStyle = close >= open ? "#d93025" : "#138a5b";
+    ctx.fillStyle = close >= open ? CHART_COLORS.up : CHART_COLORS.down;
     ctx.fillRect(x, pad.top + areaH - h, barW, h);
   });
   drawXAxis(ctx, points, pad, width, height);
@@ -477,7 +500,7 @@ function drawMacdChart(canvas, points, label) {
   const y = (v) => mid - v / maxAbs * (areaH / 2 - 6);
   const step = areaW / Math.max(points.length, 1);
   const barW = Math.max(2, Math.min(8, step * 0.62));
-  ctx.strokeStyle = "#8a98a3";
+  ctx.strokeStyle = CHART_COLORS.zero;
   ctx.beginPath();
   ctx.moveTo(pad.left, mid);
   ctx.lineTo(width - pad.right, mid);
@@ -485,14 +508,14 @@ function drawMacdChart(canvas, points, label) {
   points.forEach((p, i) => {
     const value = Number(p.macd) || 0;
     const x = pad.left + i * step + step / 2 - barW / 2;
-    ctx.fillStyle = value >= 0 ? "#d93025" : "#138a5b";
+    ctx.fillStyle = value >= 0 ? CHART_COLORS.up : CHART_COLORS.down;
     ctx.fillRect(x, Math.min(mid, y(value)), barW, Math.max(1, Math.abs(y(value) - mid)));
   });
-  drawLine(ctx, points.map((p) => Number(p.dif)), pad, step, y, "#0d47a1");
-  drawLine(ctx, points.map((p) => Number(p.dea)), pad, step, y, "#b45f06");
-  ctx.fillStyle = "#0d47a1";
+  drawLine(ctx, points.map((p) => Number(p.dif)), pad, step, y, CHART_COLORS.dif);
+  drawLine(ctx, points.map((p) => Number(p.dea)), pad, step, y, CHART_COLORS.dea);
+  ctx.fillStyle = CHART_COLORS.dif;
   ctx.fillText("DIF", width - 72, 20);
-  ctx.fillStyle = "#b45f06";
+  ctx.fillStyle = CHART_COLORS.dea;
   ctx.fillText("DEA", width - 40, 20);
   drawXAxis(ctx, points, pad, width, height);
 }
@@ -508,7 +531,7 @@ function drawPriceAnnotations(ctx, points, pad, areaW, areaH, scale, step, bodyW
     pad.left + lowIndex * step + step / 2,
     scale(Number(points[lowIndex].low)),
     `最低 ${fmt(points[lowIndex].low, 2)}`,
-    "#0f6b63",
+    CHART_COLORS.low,
     pad,
     areaW,
     areaH,
@@ -519,7 +542,7 @@ function drawPriceAnnotations(ctx, points, pad, areaW, areaH, scale, step, bodyW
     pad.left + latestIndex * step + step / 2,
     scale(Number(points[latestIndex].close)),
     `最新 ${fmt(points[latestIndex].close, 2)}`,
-    "#b45f06",
+    CHART_COLORS.latest,
     pad,
     areaW,
     areaH,
@@ -579,7 +602,7 @@ function drawCalloutBox(ctx, box) {
   ctx.lineTo(Math.max(box.boxX, Math.min(box.boxX + box.boxW, box.x)), targetY);
   ctx.stroke();
   ctx.fillRect(box.boxX, box.boxY, box.boxW, box.boxH);
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = CHART_COLORS.labelText;
   ctx.font = "12px system-ui, sans-serif";
   ctx.fillText(box.label, box.boxX + 6, box.boxY + 15);
 }
@@ -598,8 +621,8 @@ function drawLine(ctx, values, pad, step, y, color) {
 }
 
 function drawYAxis(ctx, pad, width, height, min, max) {
-  ctx.strokeStyle = "#eef1f3";
-  ctx.fillStyle = "#60717c";
+  ctx.strokeStyle = CHART_COLORS.grid;
+  ctx.fillStyle = CHART_COLORS.text;
   ctx.font = "12px system-ui, sans-serif";
   for (let i = 0; i <= 4; i += 1) {
     const y = pad.top + (height - pad.top - pad.bottom) * i / 4;
@@ -613,7 +636,7 @@ function drawYAxis(ctx, pad, width, height, min, max) {
 }
 
 function drawXAxis(ctx, points, pad, width, height) {
-  ctx.fillStyle = "#60717c";
+  ctx.fillStyle = CHART_COLORS.text;
   ctx.font = "12px system-ui, sans-serif";
   const labels = 5;
   for (let i = 0; i < labels; i += 1) {
